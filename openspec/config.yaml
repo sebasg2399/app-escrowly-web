@@ -1,0 +1,37 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Node + TypeScript + Fastify + Prisma + PostgreSQL (backend); React + Vite + TypeScript + Tailwind + Stripe.js (frontend)
+  Architecture: Modular monolith, domain-first. Infrastructure (files, notifications) behind ports/adapters; mocked locally. NO AWS (no Lambda/Step Functions/SQS/EventBridge/SNS/Terraform/LocalStack).
+  Payments: Stripe Connect Express accounts, Separate Charges and Transfers, manual payouts ({schedule: manual}), Stripe Billing for the Premium subscription. Test mode.
+  Auth: self-managed (email + password, JWT or session, roles: client, seller, admin). No external provider.
+  Testing: not installed yet — planned Vitest (backend) and Vitest + Testing Library (frontend)
+  Style: not defined yet — planned ESLint + Prettier
+
+strict_tdd: false
+
+rules:
+  proposal:
+    - Keep scope aligned to the domain-first MVP; reject cloud plumbing that adds no domain value
+    - Flag any feature that risks long-term fund holding on the platform balance
+  specs:
+    - Use Given/When/Then for every scenario
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+    - Money is stored as integer minor units (cents); never use floats
+    - Every financial state transition MUST be idempotent and auditable
+  design:
+    - Document the milestone state machine explicitly (pending, funded, in_review, disputed, approved, paid)
+    - Include sequence diagrams for funding, approval, dispute and payout flows
+    - Record architecture decisions with rationale
+  tasks:
+    - Group by phase (foundations, domain, payments, frontend, hardening)
+    - Use hierarchical numbering (1.1, 1.2, ...)
+    - Keep tasks small enough to complete in one session
+  apply:
+    - Follow existing code patterns and conventions
+    - Validate untrusted input with zod (or equivalent) at the boundary
+  verify:
+    - Run tests if test infrastructure exists
+    - Compare implementation against every spec scenario
+  archive:
+    - Warn before merging destructive deltas
