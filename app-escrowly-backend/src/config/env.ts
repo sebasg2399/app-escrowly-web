@@ -1,4 +1,11 @@
+import { existsSync } from "node:fs";
 import { z } from "zod";
+
+// The app runtime does not read .env by itself (the Prisma CLI does).
+// Load it when present so `pnpm dev` works locally; real env vars still win.
+if (existsSync(".env")) {
+  process.loadEnvFile(".env");
+}
 
 // Note: tests override DATABASE_URL to "escrowly_test" via env var.
 const envSchema = z.object({
