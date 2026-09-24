@@ -7,11 +7,11 @@
 | Estimated changed lines | 1400–1800 |
 | 400-line budget risk | High |
 | Chained PRs recommended | Yes |
-| Chain strategy | pending |
+| Chain strategy | stacked-to-main |
 
-Decision needed before apply: Yes
+Decision needed before apply: No
 Chained PRs recommended: Yes
-Chain strategy: pending
+Chain strategy: stacked-to-main
 400-line budget risk: High
 
 ### Suggested Work Units
@@ -23,15 +23,15 @@ Chain strategy: pending
 
 ## Phase 1: Foundation / Infrastructure
 
-- [ ] 1.1 Create `app-escrowly-backend/package.json` (fastify, @fastify/swagger, zod, @prisma/client, argon2, pino; dev: prisma, typescript, vitest, eslint, prettier)
-- [ ] 1.2 Create `tsconfig.json`, `vitest.config.ts`, `.env.example`, `.gitignore`
-- [ ] 1.3 Create `src/config/env.ts` (zod env, incl. `escrowly_test` DATABASE_URL)
-- [ ] 1.4 Create `docker-compose.yml` (PostgreSQL)
-- [ ] 1.5 Create `prisma/schema.prisma` (`Role` enum; `User`, `Session` per design)
-- [ ] 1.6 Run `pnpm prisma migrate dev` → initial `prisma/migrations/`
-- [ ] 1.7 Create `src/app.ts` (`buildApp()`) and `src/server.ts`
-- [ ] 1.8 Create `src/plugins/error-handler.ts` (envelope `code/message/details`) and `src/plugins/logger.ts` (pino, correlation id, redaction)
-- [ ] 1.9 Add `GET /health` returning 200
+- [x] 1.1 Create `app-escrowly-backend/package.json` (fastify, @fastify/swagger, zod, @prisma/client, argon2, pino; dev: prisma, typescript, vitest, eslint, prettier)
+- [x] 1.2 Create `tsconfig.json`, `vitest.config.ts`, `.env.example`, `.gitignore`
+- [x] 1.3 Create `src/config/env.ts` (zod env, incl. `escrowly_test` DATABASE_URL)
+- [x] 1.4 Create `docker-compose.yml` (PostgreSQL)
+- [x] 1.5 Create `prisma/schema.prisma` (`Role` enum; `User`, `Session` per design)
+- [ ] 1.6 Run `pnpm prisma migrate dev` → initial `prisma/migrations/` *(skip: must be run locally by user — `pnpm install && docker compose up -d && pnpm prisma migrate dev --name init`)*
+- [x] 1.7 Create `src/app.ts` (`buildApp()`) and `src/server.ts`
+- [x] 1.8 Create `src/plugins/error-handler.ts` (envelope `code/message/details`) and `src/plugins/logger.ts` (pino, correlation id, redaction)
+- [x] 1.9 Add `GET /health` returning 200
 
 ## Phase 2: Core Implementation
 
