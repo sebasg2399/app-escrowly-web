@@ -14,7 +14,7 @@ A milestone MUST belong to exactly one contract and SHALL carry a non-empty `tit
 
 ### Requirement: Milestone state machine (happy path)
 
-The milestone status SHALL follow the linear happy path `pending → funded → in_review → approved → paid`. The `disputed` state is reserved and SHALL NOT be reached by any transition in this change. Each transition SHALL be triggered only by the owning participant role: `funded → in_review` by the seller, `in_review → approved` by the client. The `pending → funded` transition SHALL be triggered by the funding flow on a successful payment event.
+The milestone status SHALL follow the linear happy path `pending → funded → in_review → approved → paid`. The `disputed` state is reserved and SHALL NOT be reached by any transition in this change. Each transition SHALL be triggered only by the owning participant role: `funded → in_review` by the seller, and `in_review → approved → paid` by the client (approval atomically triggers the payout; the milestone remains `approved` only when the payout fails). The `pending → funded` transition SHALL be triggered by the funding flow on a successful payment event.
 
 #### Scenario: Seller submits delivery
 
@@ -25,8 +25,9 @@ The milestone status SHALL follow the linear happy path `pending → funded → 
 #### Scenario: Client approves delivery
 
 - GIVEN a milestone is `in_review` and the caller is the client of its contract
-- WHEN the client triggers the `in_review → approved` transition
-- THEN the milestone status MUST become `approved`
+- WHEN the client approves the delivery
+- THEN the milestone MUST leave `in_review`, passing through `approved`
+- AND it MUST settle as `paid` when the payout succeeds (or remain `approved` if the payout fails)
 
 ### Requirement: Invalid transitions are rejected
 
