@@ -41,12 +41,12 @@ Chain strategy: stacked-to-main
 - [x] 2.4 Create `src/modules/auth/auth.service.ts` (dup email → 409; bad login → 401; 5-min JWT + opaque refresh, rotate; logout sets `revoked_at`)
 - [x] 2.5 Create `src/plugins/auth.ts` (JWT HS256 verify + `access_jti` revocation lookup) and `src/plugins/rate-limit.ts` (→ 429)
 - [x] 2.6 Create `src/modules/auth/auth.routes.ts` (register/login/logout/refresh; httpOnly+Secure+SameSite=Strict cookie)
-- [ ] 2.7 Create `src/modules/users/users.schemas.ts` + `users.service.ts` (profile omits `passwordHash`; PATCH rejects role/`passwordHash`)
-- [ ] 2.8 Create `src/modules/users/users.routes.ts` (`GET /users/me`, `PATCH /users/me`)
+- [x] 2.7 Create `src/modules/users/users.schemas.ts` + `users.service.ts` (profile omits `passwordHash`; PATCH rejects role/`passwordHash`/`email`; `name` updatable)
+- [x] 2.8 Create `src/modules/users/users.routes.ts` (`GET /users/me`, `PATCH /users/me`)
 
 ## Phase 3: Integration / Wiring
 
-- [~] 3.1 Register plugins + modules in `buildApp()` (logger, error-handler, rate-limit, auth, routes) — auth wired; users/swagger pending
+- [~] 3.1 Register plugins + modules in `buildApp()` (logger, error-handler, rate-limit, auth, routes) — auth + users wired; swagger pending
 - [ ] 3.2 Wire `@fastify/swagger` from route zod schemas; add `pnpm openapi` dumping `openapi.yaml`
 
 ## Phase 4: Testing
@@ -56,7 +56,7 @@ Chain strategy: stacked-to-main
 - [x] 4.3 `app.inject()`: register → 201 + token; duplicate email → 409; weak password → 400 + field details
 - [x] 4.4 Login: valid → token; wrong password → 401
 - [x] 4.5 Logout: revoked session → access rejected 401
-- [ ] 4.6 `/users/me`: no `passwordHash`; PATCH field persists; role-escalation rejected
+- [x] 4.6 `/users/me`: no `passwordHash`; PATCH field persists; role/email-escalation rejected
 - [x] 4.7 Expired/malformed token → 401; unauthenticated route → 401 envelope; unknown route → 404
 - [x] 4.8 Excessive auth attempts → 429
 - [ ] 4.9 Verify `openapi.yaml` describes health, auth, users routes
