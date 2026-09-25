@@ -17,6 +17,16 @@ const ERROR_CODES = {
   INTERNAL: "INTERNAL",
 } as const;
 
+const STATUS_TO_CODE: Record<number, string> = {
+  400: ERROR_CODES.VALIDATION_ERROR,
+  401: ERROR_CODES.UNAUTHORIZED,
+  403: ERROR_CODES.FORBIDDEN,
+  404: ERROR_CODES.NOT_FOUND,
+  409: ERROR_CODES.CONFLICT,
+  415: ERROR_CODES.VALIDATION_ERROR,
+  429: ERROR_CODES.RATE_LIMITED,
+};
+
 function errorEnvelope(code: string, message: string, details?: Record<string, string[]>) {
   return { code, message, ...(details ? { details } : {}) };
 }
@@ -60,6 +70,14 @@ export const errorHandlerPlugin = fp(
       // 404 — unknown route (set below via setNotFoundHandler)
       if (error.statusCode === 404) {
         return reply.code(404).send(errorEnvelope(ERROR_CODES.NOT_FOUND, "Route not found"));
+      }
+
+      // Any other client error must stay a 4xx, never become a 500.
+      // e.g. Fastify's body parser throws FST_ERR_CTP_EMPTY_JSON_BODY (400)
+      // when a request declares Content-Type: application/json without a body.
+      if (error.statusCode && error.statusCode >= 400 && error.statusCode < 500) {
+        const code = STATUS_TO_CODE[error.statusCode] ?? ERROR_CODES.VALIDATION_ERROR;
+        return reply.code(error.statusCode).send(errorEnvelope(code, error.message));
       }
 
       // Fallback — unexpected error
