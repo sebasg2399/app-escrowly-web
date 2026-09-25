@@ -11,6 +11,9 @@
     "openapi": "tsx src/scripts/dump-openapi.ts"
   },
   "dependencies": {
+    "@fastify/cookie": "^11.1.2",
+    "@fastify/jwt": "^10.2.2",
+    "@fastify/rate-limit": "^11.2.0",
     "@fastify/swagger": "^9.4.2",
     "@fastify/swagger-ui": "^5.2.3",
     "@prisma/client": "^6.17.1",

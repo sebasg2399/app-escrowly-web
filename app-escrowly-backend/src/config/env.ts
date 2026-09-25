@@ -13,6 +13,9 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url().or(z.string().startsWith("postgresql://")),
   JWT_SECRET: z.string().min(1),
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+  ACCESS_TOKEN_TTL: z.string().default("5m"),
+  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(7),
+  COOKIE_NAME: z.string().default("escrowly_refresh"),
 });
 
 export const env = envSchema.parse(process.env);

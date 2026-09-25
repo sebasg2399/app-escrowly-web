@@ -57,4 +57,4 @@ export const loggerPlugin = fp(async (app: FastifyInstance) => {
       "request completed",
     );
   });
-});
+}, { name: "logger-plugin" });
