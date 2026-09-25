@@ -10,6 +10,8 @@ import { createPrismaUserRepository } from "./adapters/prisma/user-repository.js
 import { createPrismaSessionRepository } from "./adapters/prisma/session-repository.js";
 import { AuthService } from "./modules/auth/auth.service.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
+import { UsersService } from "./modules/users/users.service.js";
+import { usersRoutes } from "./modules/users/users.routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -25,7 +27,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   const userRepo = createPrismaUserRepository(prisma);
   const sessionRepo = createPrismaSessionRepository(prisma);
 
-  // Auth plugin (registers @fastify/jwt internally + authenticate decorator)
+  // Registers @fastify/jwt (root scope) and the `authenticate` decorator
   await app.register(authPlugin, {
     jwtSecret: env.JWT_SECRET,
     sessionRepository: sessionRepo,
@@ -50,6 +52,9 @@ export async function buildApp(): Promise<FastifyInstance> {
     });
     await authRoutes(scope, { authService, env });
   });
+
+  // Users routes
+  await usersRoutes(app, { usersService: new UsersService(userRepo) });
 
   // --- Health check ---
   app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));

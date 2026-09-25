@@ -5,9 +5,30 @@ describe("auth.schemas", () => {
   describe("registerSchema", () => {
     it("accepts valid registration", () => {
       const result = registerSchema.safeParse({
-        body: { email: "test@example.com", password: "SecurePass1" },
+        body: { name: "Test User", email: "test@example.com", password: "SecurePass1" },
       });
       expect(result.success).toBe(true);
+    });
+
+    it("rejects missing name", () => {
+      const result = registerSchema.safeParse({
+        body: { email: "test@example.com", password: "SecurePass1" },
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects empty name", () => {
+      const result = registerSchema.safeParse({
+        body: { name: "", email: "test@example.com", password: "SecurePass1" },
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects whitespace-only name", () => {
+      const result = registerSchema.safeParse({
+        body: { name: "   ", email: "test@example.com", password: "SecurePass1" },
+      });
+      expect(result.success).toBe(false);
     });
 
     it("rejects invalid email", () => {

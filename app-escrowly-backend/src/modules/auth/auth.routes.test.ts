@@ -55,6 +55,7 @@ describe("POST /auth/register", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Test User",
         email: "test@example.com",
         password: "SecurePass1",
       },
@@ -76,6 +77,7 @@ describe("POST /auth/register", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Dup User",
         email: "dup@example.com",
         password: "SecurePass1",
       },
@@ -85,6 +87,7 @@ describe("POST /auth/register", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Dup User 2",
         email: "dup@example.com",
         password: "SecurePass1",
       },
@@ -101,6 +104,7 @@ describe("POST /auth/register", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Weak User",
         email: "weak@example.com",
         password: "weak",
       },
@@ -119,6 +123,7 @@ describe("POST /auth/register", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "No Email",
         password: "SecurePass1",
       },
     });
@@ -136,6 +141,7 @@ describe("POST /auth/login", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Login User",
         email: "login@example.com",
         password: "SecurePass1",
       },
@@ -164,6 +170,7 @@ describe("POST /auth/login", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Wrong User",
         email: "wrong@example.com",
         password: "SecurePass1",
       },
@@ -207,6 +214,7 @@ describe("POST /auth/logout", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Logout User",
         email: "logout@example.com",
         password: "SecurePass1",
       },
@@ -231,6 +239,7 @@ describe("POST /auth/logout", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Logout 2 User",
         email: "logout2@example.com",
         password: "SecurePass1",
       },
@@ -267,6 +276,7 @@ describe("POST /auth/refresh", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Refresh User",
         email: "refresh@example.com",
         password: "SecurePass1",
       },
@@ -326,6 +336,7 @@ describe("POST /auth/refresh", () => {
       method: "POST",
       url: "/auth/register",
       payload: {
+        name: "Revoke User",
         email: "refresh-revoke@example.com",
         password: "SecurePass1",
       },

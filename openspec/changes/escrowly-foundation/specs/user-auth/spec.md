@@ -4,14 +4,20 @@
 
 ### Requirement: User registration
 
-A visitor MUST be able to register with an email and password. On success the system SHALL create an account and return an authenticated token.
+A visitor MUST be able to register with a `name`, email, and password. On success the system SHALL create an account and return an authenticated token. The `name` MUST be a non-empty string of 1–100 characters (after trim).
 
 #### Scenario: Successful registration
 
-- GIVEN a visitor provides a valid, unused email and a strong password
+- GIVEN a visitor provides a valid name, a valid unused email, and a strong password
 - WHEN they register
 - THEN the account MUST be created
 - AND the response SHALL include an authenticated token
+
+#### Scenario: Missing or empty name
+
+- GIVEN a visitor submits a registration without a name or with a blank/whitespace-only name
+- WHEN they register
+- THEN the API MUST reject it with HTTP 400 and field-level details
 
 ### Requirement: Email uniqueness
 

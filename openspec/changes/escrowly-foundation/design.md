@@ -61,6 +61,7 @@ enum Role { client seller admin }
 model User {
   id                 String   @id @default(uuid())
   email              String   @unique
+  name               String   @map("name")
   passwordHash       String   @map("password_hash")
   role               Role     @default(client)
   stripeCustomerId   String?  @map("stripe_customer_id")

@@ -38,6 +38,7 @@ export class AuthService {
     const passwordHash = await hashPassword(input.password);
     const user = await this.users.create({
       email: input.email,
+      name: input.name,
       passwordHash,
     });
 
