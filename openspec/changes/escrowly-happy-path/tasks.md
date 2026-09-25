@@ -42,14 +42,14 @@ Chain strategy: stacked-to-main
 
 ## Phase 3: Contracts Module
 
-- [ ] 3.1 Create `src/modules/contracts/{schemas,service,routes}.ts`: `POST /contracts` client-first, seller by email, integer-cents; empty/non-integer → 400; `draft` + `pending`.
-- [ ] 3.2 `GET /contracts` participant-scoped + `GET /contracts/:id` participant-only (403).
-- [ ] 3.3 Wire in `src/app.ts`; test creation, 400s, 403, list scoping (contracts spec).
+- [x] 3.1 Create `src/modules/contracts/{schemas,service,routes}.ts`: `POST /contracts` client-first, seller by email, integer-cents; empty/non-integer → 400; `draft` + `pending`.
+- [x] 3.2 `GET /contracts` participant-scoped + `GET /contracts/:id` participant-only (403).
+- [x] 3.3 Wire in `src/app.ts`; test creation, 400s, 403, list scoping (contracts spec).
 
 ## Phase 4: Milestones + State Machine
 
-- [ ] 4.1 Create `src/modules/milestones/{schemas,service,routes}.ts`: `submit` (seller, `funded→in_review`), `approve` (client, `in_review→approved`→payout).
-- [ ] 4.2 Enforce transitions/roles; reject skip-step, wrong role, `disputed`; test milestones spec scenarios.
+- [x] 4.1 Create `src/modules/milestones/{schemas,service,routes}.ts`: `submit` (seller, `funded→in_review`) — DEFERRED: `approve` (client, `in_review→approved`→payout) belongs to the payout slice (PR 4).
+- [ ] 4.2 ~~Enforce transitions/roles; reject skip-step, wrong role, `disputed`; test milestones spec scenarios.~~ **DEFERRED to payout slice (PR 4)**: `approve` is the entry point to the Stripe transfer and ledger writes, so it ships with the payout/commission phase. The submit-only half (seller + skip-step + wrong-role + non-`funded` + 409) is already covered by the tests in `src/modules/milestones/milestones.routes.test.ts`.
 
 ## Phase 5: Funding + Webhooks
 
