@@ -53,10 +53,10 @@ Chain strategy: stacked-to-main
 
 ## Phase 5: Funding + Webhooks
 
-- [ ] 5.1 `POST .../milestones/:mid/fund` (client, `pending`, no `transfer_data`): `createPaymentIntent("fund:${mid}")` → persist id, return `{id,client_secret}`; non-pending → 409.
-- [ ] 5.2 Create `src/plugins/stripe-webhooks.ts`: signature check (bad → 400), dispatch 5 types, unknown → 2xx no-op.
-- [ ] 5.3 `payment_intent.succeeded` tx: webhook row + `funded` + `platform_receipt` ledger + contract `active`; `payment_failed` → stays `pending`.
-- [ ] 5.4 `account.updated` → onboarding state; tests: signature, duplicate → 200 no-op, 1 ledger row, never 5xx.
+- [x] 5.1 `POST .../milestones/:mid/fund` (client, `pending`, no `transfer_data`): `createPaymentIntent("fund:${mid}")` → persist id, return `{id,client_secret}`; non-pending → 409.
+- [x] 5.2 Create `src/plugins/stripe-webhooks.ts`: signature check (bad → 400), dispatch 5 types, unknown → 2xx no-op.
+- [x] 5.3 `payment_intent.succeeded` tx: webhook row + `funded` + `platform_receipt` ledger + contract `active`; `payment_failed` → stays `pending`.
+- [x] 5.4 `account.updated` → onboarding state; tests: signature, duplicate → 200 no-op, 1 ledger row, never 5xx.
 
 ## Phase 6: Payout + Commission
 

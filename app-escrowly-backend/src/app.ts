@@ -11,6 +11,11 @@ import { createPrismaUserRepository } from "./adapters/prisma/user-repository.js
 import { createPrismaSessionRepository } from "./adapters/prisma/session-repository.js";
 import { createPrismaContractRepository } from "./adapters/prisma/contract-repository.js";
 import { createPrismaMilestoneRepository } from "./adapters/prisma/milestone-repository.js";
+import { createPrismaLedgerRepository } from "./adapters/prisma/ledger-repository.js";
+import { createPrismaWebhookEventRepository } from "./adapters/prisma/webhook-event-repository.js";
+import { createStripeClient } from "./adapters/stripe/stripe-client.js";
+import { createFakeStripeClient, FakeStripeClient } from "./adapters/stripe/stripe-client.fake.js";
+import type { StripeClient } from "./ports/stripe-client.js";
 import { AuthService } from "./modules/auth/auth.service.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { UsersService } from "./modules/users/users.service.js";
@@ -27,6 +32,20 @@ function readPackageVersion(): string {
     return JSON.parse(readFileSync(pkgPath, "utf-8")).version;
   }
   return "0.1.0";
+}
+
+function buildStripeClient(): StripeClient {
+  if (env.NODE_ENV === "test" || !env.STRIPE_SECRET_KEY) {
+    const fake = createFakeStripeClient();
+    if (env.STRIPE_WEBHOOK_SECRET) {
+      fake.webhook.setSecret(env.STRIPE_WEBHOOK_SECRET);
+    }
+    return fake;
+  }
+  return createStripeClient({
+    apiKey: env.STRIPE_SECRET_KEY,
+    apiVersion: env.STRIPE_API_VERSION,
+  });
 }
 
 export async function buildApp(): Promise<FastifyInstance> {
@@ -66,6 +85,11 @@ export async function buildApp(): Promise<FastifyInstance> {
   const sessionRepo = createPrismaSessionRepository(prisma);
   const contractRepo = createPrismaContractRepository(prisma);
   const milestoneRepo = createPrismaMilestoneRepository(prisma);
+  const ledgerRepo = createPrismaLedgerRepository(prisma);
+  const webhookEventRepo = createPrismaWebhookEventRepository(prisma);
+
+  // Stripe client (fake in test, real otherwise)
+  const stripeClient = buildStripeClient();
 
   // Registers @fastify/jwt (root scope) and the `authenticate` decorator
   await app.register(authPlugin, {
@@ -101,7 +125,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     contractsService: new ContractsService(userRepo, contractRepo, prisma),
   });
   await milestonesRoutes(app, {
-    milestonesService: new MilestonesService(contractRepo, milestoneRepo),
+    milestonesService: new MilestonesService(contractRepo, milestoneRepo, stripeClient, prisma),
   });
 
   // --- Health check ---
@@ -126,7 +150,20 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Stripe webhook receiver — encapsulated so its raw-body parser does
   // not affect the global JSON parser used by other routes.
-  await app.register(stripeWebhooksPlugin);
+  await app.register(stripeWebhooksPlugin, {
+    stripeClient,
+    prisma,
+    contractRepository: contractRepo,
+    milestoneRepository: milestoneRepo,
+    ledgerRepository: ledgerRepo,
+    webhookEventRepository: webhookEventRepo,
+    userRepository: userRepo,
+  });
+
+  // Expose for tests so they can grab the fake Stripe client + emit events.
+  if (env.NODE_ENV === "test") {
+    Object.assign(app, { stripeClient: stripeClient as FakeStripeClient });
+  }
 
   return app;
 }

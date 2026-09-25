@@ -237,3 +237,153 @@ describe("POST /contracts/:id/milestones/:mid/submit", () => {
     expect(res.statusCode).toBe(401);
   });
 });
+
+describe("POST /contracts/:id/milestones/:mid/fund", () => {
+  it("creates a PaymentIntent on the platform account, stores the id, and returns the clientSecret", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-fund@example.com", "Client Fund");
+    const sellerToken = await registerUser(app, "seller-fund@example.com", "Seller Fund");
+
+    const contract = await createContract(app, clientToken, "seller-fund@example.com", [
+      { title: "Phase", amount: 12345 },
+    ]);
+    const milestoneId = contract.milestones[0].id;
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/fund`,
+      headers: { Authorization: `Bearer ${clientToken}` },
+    });
+
+    expect(res.statusCode).toBe(200);
+    const body = JSON.parse(res.payload);
+    expect(body.id).toMatch(/^pi_fake_/);
+    expect(body.clientSecret).toMatch(/^pi_fake_.*_secret_/);
+
+    const persisted = await prisma.milestone.findUnique({ where: { id: milestoneId } });
+    expect(persisted!.stripePaymentIntentId).toBe(body.id);
+    expect(persisted!.status).toBe("pending");
+
+    const contractAfter = await prisma.contract.findUnique({ where: { id: contract.id } });
+    expect(contractAfter!.status).toBe("draft");
+    // ensure seller has not been touched (no role change, no auth)
+    expect(sellerToken).toBeDefined();
+  });
+
+  it("returns 409 on a re-fund attempt (no second PaymentIntent, no extra ledger row)", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-refund@example.com", "Client Refund");
+    await registerUser(app, "seller-refund@example.com", "Seller Refund");
+    const contract = await createContract(app, clientToken, "seller-refund@example.com", [
+      { title: "Phase", amount: 5000 },
+    ]);
+    const milestoneId = contract.milestones[0].id;
+
+    const first = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/fund`,
+      headers: { Authorization: `Bearer ${clientToken}` },
+    });
+    expect(first.statusCode).toBe(200);
+    const firstPiId = JSON.parse(first.payload).id;
+
+    const second = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/fund`,
+      headers: { Authorization: `Bearer ${clientToken}` },
+    });
+    expect(second.statusCode).toBe(409);
+    expect(JSON.parse(second.payload).code).toBe("CONFLICT");
+
+    const persisted = await prisma.milestone.findUnique({ where: { id: milestoneId } });
+    expect(persisted!.stripePaymentIntentId).toBe(firstPiId);
+    expect(persisted!.status).toBe("pending");
+
+    const ledgerCount = await prisma.ledgerEntry.count();
+    expect(ledgerCount).toBe(0);
+  });
+
+  it("returns 409 when the milestone is already funded (status not pending)", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-nonpending@example.com", "Client NP");
+    await registerUser(app, "seller-nonpending@example.com", "Seller NP");
+    const contract = await createContract(app, clientToken, "seller-nonpending@example.com", [
+      { title: "Phase", amount: 7000 },
+    ]);
+    const milestoneId = contract.milestones[0].id;
+    await prisma.milestone.update({
+      where: { id: milestoneId },
+      data: { status: "funded", stripePaymentIntentId: "pi_existing" },
+    });
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/fund`,
+      headers: { Authorization: `Bearer ${clientToken}` },
+    });
+    expect(res.statusCode).toBe(409);
+    expect(JSON.parse(res.payload).code).toBe("CONFLICT");
+  });
+
+  it("returns 403 when called by the seller (non-client participant)", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-3p@example.com", "Client 3P");
+    const sellerToken = await registerUser(app, "seller-3p@example.com", "Seller 3P");
+    const contract = await createContract(app, clientToken, "seller-3p@example.com", [
+      { title: "Phase", amount: 900 },
+    ]);
+    const milestoneId = contract.milestones[0].id;
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/fund`,
+      headers: { Authorization: `Bearer ${sellerToken}` },
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.payload).code).toBe("FORBIDDEN");
+  });
+
+  it("returns 403 to a non-participant (outsider)", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-out@example.com", "Client Out");
+    const outsiderToken = await registerUser(app, "outsider-fund@example.com", "Outsider");
+    await registerUser(app, "seller-out@example.com", "Seller Out");
+    const contract = await createContract(app, clientToken, "seller-out@example.com", [
+      { title: "Phase", amount: 1100 },
+    ]);
+    const milestoneId = contract.milestones[0].id;
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/fund`,
+      headers: { Authorization: `Bearer ${outsiderToken}` },
+    });
+    expect(res.statusCode).toBe(403);
+    expect(JSON.parse(res.payload).code).toBe("FORBIDDEN");
+  });
+
+  it("returns 404 when the milestone does not belong to the contract", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-wmf@example.com", "Client WMF");
+    await registerUser(app, "seller-wmf@example.com", "Seller WMF");
+    const contract = await createContract(app, clientToken, "seller-wmf@example.com", [
+      { title: "Phase", amount: 250 },
+    ]);
+
+    const res = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/11111111-1111-1111-1111-111111111111/fund`,
+      headers: { Authorization: `Bearer ${clientToken}` },
+    });
+    expect(res.statusCode).toBe(404);
+  });
+
+  it("returns 401 without auth", async () => {
+    const app = await getApp();
+    const res = await app.inject({
+      method: "POST",
+      url: "/contracts/00000000-0000-0000-0000-000000000000/milestones/00000000-0000-0000-0000-000000000000/fund",
+    });
+    expect(res.statusCode).toBe(401);
+  });
+});
