@@ -5,6 +5,7 @@ import type {
   ContractWithMilestones,
 } from "../../ports/contract-repository.js";
 import type { CreateContractInput } from "./contracts.schemas.js";
+import { assertParticipant } from "../../lib/authorization.js";
 
 function notFound(message: string): Error & { statusCode: number; code: string } {
   const err = new Error(message) as Error & { statusCode: number; code: string };
@@ -26,13 +27,6 @@ function selfSellerError(): Error & {
   err.statusCode = 400;
   err.code = "VALIDATION_ERROR";
   err.details = { sellerEmail: ["Seller must be a different user"] };
-  return err;
-}
-
-function forbidden(message: string): Error & { statusCode: number; code: string } {
-  const err = new Error(message) as Error & { statusCode: number; code: string };
-  err.statusCode = 403;
-  err.code = "FORBIDDEN";
   return err;
 }
 
@@ -76,9 +70,7 @@ export class ContractsService {
     if (!contract) {
       throw notFound("Contract not found");
     }
-    if (contract.clientId !== userId && contract.sellerId !== userId) {
-      throw forbidden("Not a participant of this contract");
-    }
+    assertParticipant(contract, userId);
     return contract;
   }
 }

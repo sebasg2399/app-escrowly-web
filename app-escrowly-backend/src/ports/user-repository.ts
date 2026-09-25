@@ -12,4 +12,5 @@ export interface UserRepository {
   update(id: string, data: { name?: string }): Promise<User>;
   findByStripeAccountId(stripeAccountId: string): Promise<User | null>;
   updateStripeAccountFlags(id: string, flags: StripeAccountFlags): Promise<User>;
+  setStripeAccountId(id: string, stripeAccountId: string): Promise<User>;
 }

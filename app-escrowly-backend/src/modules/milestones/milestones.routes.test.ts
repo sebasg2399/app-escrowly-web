@@ -387,3 +387,81 @@ describe("POST /contracts/:id/milestones/:mid/fund", () => {
     expect(res.statusCode).toBe(401);
   });
 });
+
+describe("disputed status is unreachable via the public API", () => {
+  it("submit on a disputed milestone returns 409 (no transition is accepted)", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-disp@example.com", "Client Disp");
+    const sellerToken = await registerUser(app, "seller-disp@example.com", "Seller Disp");
+    const contract = await createContract(app, clientToken, "seller-disp@example.com", [
+      { title: "Phase", amount: 1000 },
+    ]);
+    const milestoneId = contract.milestones[0].id;
+
+    // Forcibly place the milestone in the reserved `disputed` status to assert the API
+    // refuses to move it forward via the seller submit endpoint.
+    await prisma.milestone.update({
+      where: { id: milestoneId },
+      data: { status: "disputed" },
+    });
+
+    const submitRes = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/submit`,
+      headers: { Authorization: `Bearer ${sellerToken}` },
+    });
+    expect(submitRes.statusCode).toBe(409);
+    expect(JSON.parse(submitRes.payload).code).toBe("CONFLICT");
+
+    const after = await prisma.milestone.findUnique({ where: { id: milestoneId } });
+    expect(after!.status).toBe("disputed");
+  });
+
+  it("approve on a disputed milestone returns 409", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-disp-a@example.com", "Client Disp A");
+    await registerUser(app, "seller-disp-a@example.com", "Seller Disp A");
+    const contract = await createContract(app, clientToken, "seller-disp-a@example.com", [
+      { title: "Phase", amount: 2000 },
+    ]);
+    const milestoneId = contract.milestones[0].id;
+
+    await prisma.milestone.update({
+      where: { id: milestoneId },
+      data: { status: "disputed" },
+    });
+
+    const approveRes = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/approve`,
+      headers: { Authorization: `Bearer ${clientToken}` },
+    });
+    expect(approveRes.statusCode).toBe(409);
+    expect(JSON.parse(approveRes.payload).code).toBe("CONFLICT");
+
+    const after = await prisma.milestone.findUnique({ where: { id: milestoneId } });
+    expect(after!.status).toBe("disputed");
+  });
+
+  it("fund on a disputed milestone returns 409", async () => {
+    const app = await getApp();
+    const clientToken = await registerUser(app, "client-disp-f@example.com", "Client Disp F");
+    await registerUser(app, "seller-disp-f@example.com", "Seller Disp F");
+    const contract = await createContract(app, clientToken, "seller-disp-f@example.com", [
+      { title: "Phase", amount: 1500 },
+    ]);
+    const milestoneId = contract.milestones[0].id;
+
+    await prisma.milestone.update({
+      where: { id: milestoneId },
+      data: { status: "disputed" },
+    });
+
+    const fundRes = await app.inject({
+      method: "POST",
+      url: `/contracts/${contract.id}/milestones/${milestoneId}/fund`,
+      headers: { Authorization: `Bearer ${clientToken}` },
+    });
+    expect(fundRes.statusCode).toBe(409);
+  });
+});

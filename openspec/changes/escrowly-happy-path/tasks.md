@@ -48,8 +48,8 @@ Chain strategy: stacked-to-main
 
 ## Phase 4: Milestones + State Machine
 
-- [x] 4.1 Create `src/modules/milestones/{schemas,service,routes}.ts`: `submit` (seller, `funded→in_review`) — DEFERRED: `approve` (client, `in_review→approved`→payout) belongs to the payout slice (PR 4).
-- [x] 4.2 ~~Enforce transitions/roles; reject skip-step, wrong role, `disputed`; test milestones spec scenarios.~~ **DEFERRED to payout slice (PR 4)**: `approve` is the entry point to the Stripe transfer and ledger writes, so it ships with the payout/commission phase. The submit-only half (seller + skip-step + wrong-role + non-`funded` + 409) is already covered by the tests in `src/modules/milestones/milestones.routes.test.ts`. Implemented in PR 4 (`approve` happy path + authz + status guard; transfer failure / missing account / duplicate covered by `milestones.approve.routes.test.ts`).
+- [x] 4.1 Create `src/modules/milestones/{schemas,service,routes}.ts`: `submit` (seller, `funded→in_review`) — `approve` (client, `in_review→approved`→payout) shipped in PR 4 (Phase 6).
+- [x] 4.2 Enforce transitions/roles; reject skip-step, wrong role, `disputed`; test milestones spec scenarios. Implemented in PR 4 (`approve` happy path + authz + status guard; transfer failure / missing account / duplicate covered by `milestones.approve.routes.test.ts`).
 
 ## Phase 5: Funding + Webhooks
 
@@ -67,3 +67,18 @@ Chain strategy: stacked-to-main
 ## Phase 7: Hardening
 
 - [x] 7.1 Run `pnpm exec tsc --noEmit` + `pnpm test` + `pnpm openapi`; commit regenerated `openapi.yaml`.
+
+## Phase 8: Connect onboarding (verify gap)
+
+Fix slice after `sdd-verify` FAIL on `connect-onboarding` (CRITICAL-1) plus WARNING-2/3/4/5.
+
+- [x] 8.1 Add `setStripeAccountId` to `UserRepository` port + Prisma adapter; persist Express account id on first onboarding.
+- [x] 8.2 Create `src/modules/connect/connect.service.ts`: `createOnboardingLink` (create-or-reuse Express account, then `createAccountLink`) + `getStatus` (refresh from `retrieveAccount`, persist drifted flags, return `{ hasAccount, detailsSubmitted, payoutsEnabled, onboardingComplete }`). Gating relaxed to ANY authenticated user (spec required `role: "seller"`, but all users register as `client`; the same user can be a client in one contract and a seller in another — see deviation in verify-report).
+- [x] 8.3 Create `src/modules/connect/connect.routes.ts`; wire `POST /connect/onboarding-link` + `GET /connect/status` in `src/app.ts`.
+- [x] 8.4 Connect tests: link creates+stores account, second call reuses it, status returns flags + refreshes from `retrieveAccount`, unauthenticated → 401.
+- [x] 8.5 Adopt shared `assertParticipant` helper in `contracts.service.ts` + `milestones.service.ts` (replacing inline `forbidden()` checks). Remove unused `assertRole` from `src/lib/authorization.ts`.
+- [x] 8.6 Record `transfer.created` / `transfer.failed` in `stripe_webhook_events` (same `tryInsert` + `$transaction` pattern) so re-delivery is a dedup no-op. Do NOT change the synchronous payout accounting in `approve`.
+- [x] 8.7 Fix real Stripe `createExpressAccount`: drop `delay_days` from the manual payout schedule (Stripe rejects `delay_days` when `interval: "manual"`). Use `{ interval: "manual" }` only.
+- [x] 8.8 Disputed-unreachable regression guard: tests assert submit/approve/fund on a `disputed` milestone returns 409 and the status stays `disputed`.
+- [x] 8.9 Regenerate `openapi.yaml` (`pnpm openapi`) — must now contain `/connect/onboarding-link` and `/connect/status`.
+- [x] 8.10 `pnpm exec tsc --noEmit` clean + `pnpm test` GREEN (128/128).

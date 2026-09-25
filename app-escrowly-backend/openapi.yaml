@@ -321,6 +321,20 @@ paths:
       responses:
         "200":
           description: Default Response
+  /connect/onboarding-link:
+    post:
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+  /connect/status:
+    get:
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
   /health:
     get:
       responses:

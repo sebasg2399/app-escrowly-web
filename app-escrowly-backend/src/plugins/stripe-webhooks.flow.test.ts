@@ -335,4 +335,43 @@ describe("Stripe webhook — transfer.* events", () => {
     expect(res.statusCode).toBe(200);
     expect(await prisma.ledgerEntry.count()).toBe(0);
   });
+
+  it("records transfer.created in stripe_webhook_events so re-delivery is a no-op", async () => {
+    const eventId = "evt_transfer_created_dedup";
+    const payload = {
+      id: eventId,
+      type: "transfer.created",
+      data: { id: "tr_fake_dedup", amount: 500 },
+    };
+
+    const first = await postWebhook(emit(payload));
+    expect(first.statusCode).toBe(200);
+
+    const second = await postWebhook(emit(payload));
+    expect(second.statusCode).toBe(200);
+
+    const rows = await prisma.stripeWebhookEvent.findMany({ where: { eventId } });
+    expect(rows).toHaveLength(1);
+
+    const ledger = await prisma.ledgerEntry.count();
+    expect(ledger).toBe(0);
+  });
+
+  it("records transfer.failed in stripe_webhook_events so re-delivery is a no-op", async () => {
+    const eventId = "evt_transfer_failed_dedup";
+    const payload = {
+      id: eventId,
+      type: "transfer.failed",
+      data: { id: "tr_fake_failed_dedup", amount: 500 },
+    };
+
+    const first = await postWebhook(emit(payload));
+    expect(first.statusCode).toBe(200);
+
+    const second = await postWebhook(emit(payload));
+    expect(second.statusCode).toBe(200);
+
+    const rows = await prisma.stripeWebhookEvent.findMany({ where: { eventId } });
+    expect(rows).toHaveLength(1);
+  });
 });

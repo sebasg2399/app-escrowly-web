@@ -2,36 +2,36 @@
 
 ## ADDED Requirements
 
-### Requirement: Sellers can start Connect onboarding
+### Requirement: Users can start Connect onboarding
 
-A user with role `seller` MAY request a Stripe Connect Express onboarding link. The system MUST create an Express account with `payouts={schedule: manual}` (manual payouts) and return a hosted onboarding URL.
+Any authenticated user MAY request a Stripe Connect Express onboarding link (a user can receive funds as the seller of a contract regardless of their global `role`). The system MUST create an Express account with `payouts={schedule: manual}` (manual payouts) and return a hosted onboarding URL.
 
-#### Scenario: Seller requests an onboarding link
+#### Scenario: Authenticated user requests an onboarding link
 
-- GIVEN an authenticated user with role `seller`
+- GIVEN an authenticated user
 - WHEN they request an onboarding link
 - THEN the system MUST create (or reuse) a Stripe Connect Express account with manual payouts
 - AND MUST return a hosted onboarding URL
 
-#### Scenario: Non-seller cannot start onboarding
+#### Scenario: Unauthenticated request is rejected
 
-- GIVEN an authenticated user with role `client` or `admin`
-- WHEN they request an onboarding link
-- THEN the system MUST reject the request with HTTP 403
+- GIVEN a request without valid authentication
+- WHEN it requests an onboarding link
+- THEN the system MUST reject the request with HTTP 401
 
-### Requirement: Sellers can check onboarding status
+### Requirement: Users can check onboarding status
 
-A user with role `seller` MAY check the onboarding status of their own connected account. The response SHALL indicate whether onboarding is complete and whether payouts are enabled.
+Any authenticated user MAY check the onboarding status of their own connected account. The response SHALL indicate whether onboarding is complete and whether payouts are enabled.
 
 #### Scenario: Onboarding complete with payouts enabled
 
-- GIVEN an authenticated seller who has finished Stripe onboarding
+- GIVEN an authenticated user who has finished Stripe onboarding
 - WHEN they request their onboarding status
 - THEN the response MUST report onboarding complete and payouts enabled
 
 #### Scenario: Onboarding incomplete
 
-- GIVEN an authenticated seller who has not finished Stripe onboarding
+- GIVEN an authenticated user who has not finished Stripe onboarding
 - WHEN they request their onboarding status
 - THEN the response MUST report onboarding incomplete and payouts not enabled
 
