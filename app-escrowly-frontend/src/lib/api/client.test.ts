@@ -164,6 +164,36 @@ describe("api client", () => {
     });
   });
 
+  describe("request headers", () => {
+    it("does NOT send Content-Type on a body-less POST", async () => {
+      let contentType: string | null = "not-checked";
+
+      server.use(
+        http.post("/auth/refresh", ({ request }) => {
+          contentType = request.headers.get("Content-Type");
+          return HttpResponse.json({ accessToken: "x" });
+        }),
+      );
+
+      await api.post("/auth/refresh");
+      expect(contentType).toBeNull();
+    });
+
+    it("sends Content-Type: application/json when a body is present", async () => {
+      let contentType: string | null = null;
+
+      server.use(
+        http.post("/auth/login", ({ request }) => {
+          contentType = request.headers.get("Content-Type");
+          return HttpResponse.json({ accessToken: "x" });
+        }),
+      );
+
+      await api.post("/auth/login", { email: "a@b.com", password: "Pass1234" });
+      expect(contentType).toContain("application/json");
+    });
+  });
+
   describe("refresh failure", () => {
     it("clears session and throws SESSION_EXPIRED on refresh 401", async () => {
       server.use(

@@ -1,15 +1,26 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import App from "./App.tsx";
+import { MemoryRouter } from "react-router";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/query-client";
+import { AuthProvider } from "./features/auth/auth-context";
+import HomePage from "./pages/app/HomePage";
 
-describe("App", () => {
-  it("renders the shell with Escrowly wordmark", () => {
-    render(<App />);
-    expect(screen.getByText("Escrowly")).toBeInTheDocument();
-  });
+function renderHomePage() {
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter>
+        <AuthProvider>
+          <HomePage />
+        </AuthProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+}
 
-  it("renders the welcome message", () => {
-    render(<App />);
-    expect(screen.getByText(/Welcome to Escrowly/i)).toBeInTheDocument();
+describe("HomePage", () => {
+  it("renders the welcome placeholder", () => {
+    renderHomePage();
+    expect(screen.getByText(/Welcome.*User/i)).toBeInTheDocument();
   });
 });

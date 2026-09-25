@@ -1,11 +1,20 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { act } from "react";
+import { MemoryRouter } from "react-router";
 import { http, HttpResponse } from "msw";
 import { server } from "../../test/mocks/server";
 import { AuthProvider } from "./auth-context";
 import { useAuth } from "./useAuth";
 import { getAccessToken } from "../../lib/api/client";
+
+function withRouter(ui: React.ReactNode) {
+  return (
+    <MemoryRouter>
+      <AuthProvider>{ui}</AuthProvider>
+    </MemoryRouter>
+  );
+}
 
 describe("AuthProvider", () => {
   it("starts in loading state", () => {
@@ -13,11 +22,7 @@ describe("AuthProvider", () => {
       const { status } = useAuth();
       return <span data-testid="status">{status}</span>;
     }
-    render(
-      <AuthProvider>
-        <StatusDisplay />
-      </AuthProvider>,
-    );
+    render(withRouter(<StatusDisplay />));
     expect(screen.getByTestId("status").textContent).toBe("loading");
   });
 
@@ -53,11 +58,7 @@ describe("AuthProvider", () => {
         );
       }
 
-      render(
-        <AuthProvider>
-          <RestoreTester />
-        </AuthProvider>,
-      );
+      render(withRouter(<RestoreTester />));
 
       expect(screen.getByTestId("status").textContent).toBe("loading");
 
@@ -89,11 +90,7 @@ describe("AuthProvider", () => {
         return <span data-testid="status">{auth.status}</span>;
       }
 
-      render(
-        <AuthProvider>
-          <RestoreTester />
-        </AuthProvider>,
-      );
+      render(withRouter(<RestoreTester />));
 
       expect(screen.getByTestId("status").textContent).toBe("loading");
 
@@ -135,11 +132,7 @@ describe("AuthProvider", () => {
         return <span data-testid="status">{auth.status}</span>;
       }
 
-      render(
-        <AuthProvider>
-          <RegisterTester />
-        </AuthProvider>,
-      );
+      render(withRouter(<RegisterTester />));
 
       await act(async () => {
         await registerFn!({
@@ -182,11 +175,7 @@ describe("AuthProvider", () => {
         return <span data-testid="status">{auth.status}</span>;
       }
 
-      render(
-        <AuthProvider>
-          <LoginTester />
-        </AuthProvider>,
-      );
+      render(withRouter(<LoginTester />));
 
       await act(async () => {
         await loginFn!({ email: "user@example.com", password: "Pass1234" });
@@ -212,11 +201,7 @@ describe("AuthProvider", () => {
         return <span data-testid="status">{auth.status}</span>;
       }
 
-      render(
-        <AuthProvider>
-          <LogoutTester />
-        </AuthProvider>,
-      );
+      render(withRouter(<LogoutTester />));
 
       await act(async () => {
         await logoutFn!();

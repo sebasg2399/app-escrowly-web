@@ -45,24 +45,24 @@ Chain strategy: stacked-to-main
 
 ## Phase 3: Shell + Routing
 
-- [ ] 3.1 `src/routes/index.tsx` + `App.tsx`/`main.tsx`: `/login`,`/register`,`/app`,`/app/profile`,`*`; wrap QueryClientProvider + AuthProvider
-- [ ] 3.2 `AuthGuard.tsx` → `/login` + `state.from`; `RootRedirect.tsx`: `/` → `/app`|`/login`
-- [ ] 3.3 Global states: boot FullPageLoader (no protected flash); 404; session-expired → login+msg; 429 banner
-- [ ] 3.4 `AppLayout.tsx` + NavBar (logo, profile menu, logout); HomePage welcome
+- [x] 3.1 `src/routes/index.tsx` + `App.tsx`/`main.tsx`: `/login`,`/register`,`/app`,`/app/profile`,`*`; wrap QueryClientProvider + AuthProvider
+- [x] 3.2 `AuthGuard.tsx` → `/login` + `state.from`; `RootRedirect.tsx`: `/` → `/app`|`/login`
+- [x] 3.3 Global states: boot FullPageLoader (no protected flash); 404; session-expired → login+msg; 429 banner
+- [x] 3.4 `AppLayout.tsx` + NavBar (logo, profile menu, logout); HomePage welcome
 
 ## Phase 4: Profile
 
-- [ ] 4.1 `src/features/profile/useProfile.ts` (TanStack Query `GET /users/me`, invalidate after PATCH)
-- [ ] 4.2 `ProfileCard.tsx`: name, email, role badge, member-since; no password
-- [ ] 4.3 `ProfileEditForm.tsx`: name-only, email/role disabled, zod, 400→inline error, success toast
-- [ ] 4.4 `ProfilePage.tsx`: view/edit toggle
+- [x] 4.1 `src/features/profile/useProfile.ts` (TanStack Query `GET /users/me`, invalidate after PATCH)
+- [x] 4.2 `ProfileCard.tsx`: name, email, role badge, member-since; no password
+- [x] 4.3 `ProfileEditForm.tsx`: name-only, email/role disabled, zod, 400→inline error, success toast
+- [x] 4.4 `ProfilePage.tsx`: view/edit toggle
 
 ## Phase 5: Tests
 
-- [ ] 5.1 `src/test/mocks/handlers.ts`: MSW for `/auth/*`, `/users/me`, `/health`
-- [ ] 5.2 Auth: register 201→app, 400/409 inline; login 200→app, 401 non-field; logout→login; restore
-- [ ] 5.3 Profile: view, name-only edit, 400 inline, update persists
-- [ ] 5.4 Shell: root redirect, guard redirect-back, 404, session-expired, 429 lock, boot loader
+- [x] 5.1 `src/test/mocks/handlers.ts`: MSW for `/auth/*`, `/users/me`, `/health` (updated with PATCH /users/me)
+- [x] 5.2 Auth: register 201→app, 400/409 inline; login 200→app, 401 non-field; logout→login; restore
+- [x] 5.3 Profile: view, name-only edit, 400 inline, update persists
+- [x] 5.4 Shell: root redirect, guard redirect-back, 404, session-expired, 429 lock, boot loader
 
 ## Phase 6: Cleanup
 
