@@ -36,7 +36,11 @@ export function createPrismaMilestoneRepository(prisma: PrismaClient): Milestone
     async transitionStatusIf(id, fromStatus, toStatus, extra, tx) {
       const result = await client(tx).milestone.updateMany({
         where: { id, status: fromStatus },
-        data: { status: toStatus, ...(extra?.paidAt ? { paidAt: extra.paidAt } : {}) },
+        data: {
+          status: toStatus,
+          ...(extra?.paidAt ? { paidAt: extra.paidAt } : {}),
+          ...(extra?.stripeTransferId ? { stripeTransferId: extra.stripeTransferId } : {}),
+        },
       });
       if (result.count === 0) return null;
       return client(tx).milestone.findUnique({ where: { id } });

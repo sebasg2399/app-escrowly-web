@@ -125,7 +125,14 @@ export async function buildApp(): Promise<FastifyInstance> {
     contractsService: new ContractsService(userRepo, contractRepo, prisma),
   });
   await milestonesRoutes(app, {
-    milestonesService: new MilestonesService(contractRepo, milestoneRepo, stripeClient, prisma),
+    milestonesService: new MilestonesService(
+      contractRepo,
+      milestoneRepo,
+      userRepo,
+      ledgerRepo,
+      stripeClient,
+      prisma,
+    ),
   });
 
   // --- Health check ---

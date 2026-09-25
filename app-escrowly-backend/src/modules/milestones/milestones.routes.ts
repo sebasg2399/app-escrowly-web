@@ -34,4 +34,19 @@ export async function milestonesRoutes(
       return opts.milestonesService.submit(id, mid, user.sub);
     },
   );
+
+  app.post(
+    "/contracts/:id/milestones/:mid/approve",
+    {
+      preHandler: [(app as any).authenticate],
+      schema: {
+        security: [{ bearerAuth: [] }],
+      },
+    },
+    async (request: FastifyRequest) => {
+      const user = request.user as { sub: string };
+      const { id, mid } = request.params as { id: string; mid: string };
+      return opts.milestonesService.approve(id, mid, user.sub);
+    },
+  );
 }

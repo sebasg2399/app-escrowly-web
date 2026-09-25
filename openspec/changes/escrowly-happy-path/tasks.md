@@ -49,7 +49,7 @@ Chain strategy: stacked-to-main
 ## Phase 4: Milestones + State Machine
 
 - [x] 4.1 Create `src/modules/milestones/{schemas,service,routes}.ts`: `submit` (seller, `funded→in_review`) — DEFERRED: `approve` (client, `in_review→approved`→payout) belongs to the payout slice (PR 4).
-- [ ] 4.2 ~~Enforce transitions/roles; reject skip-step, wrong role, `disputed`; test milestones spec scenarios.~~ **DEFERRED to payout slice (PR 4)**: `approve` is the entry point to the Stripe transfer and ledger writes, so it ships with the payout/commission phase. The submit-only half (seller + skip-step + wrong-role + non-`funded` + 409) is already covered by the tests in `src/modules/milestones/milestones.routes.test.ts`.
+- [x] 4.2 ~~Enforce transitions/roles; reject skip-step, wrong role, `disputed`; test milestones spec scenarios.~~ **DEFERRED to payout slice (PR 4)**: `approve` is the entry point to the Stripe transfer and ledger writes, so it ships with the payout/commission phase. The submit-only half (seller + skip-step + wrong-role + non-`funded` + 409) is already covered by the tests in `src/modules/milestones/milestones.routes.test.ts`. Implemented in PR 4 (`approve` happy path + authz + status guard; transfer failure / missing account / duplicate covered by `milestones.approve.routes.test.ts`).
 
 ## Phase 5: Funding + Webhooks
 
@@ -60,10 +60,10 @@ Chain strategy: stacked-to-main
 
 ## Phase 6: Payout + Commission
 
-- [ ] 6.1 Create `src/modules/payments/commission.ts` `splitCommission`; unit-test odd cents/zero.
-- [ ] 6.2 Approval: `createTransfer("transfer:${mid}")` → tx `paid` + commission/transfer ledgers + contract `completed`; duplicate approval no-op.
-- [ ] 6.3 Failure: fake throws → stays `approved`, 502, no seller ledger; credits sum = amount (payout spec).
+- [x] 6.1 Create `src/modules/payments/commission.ts` `splitCommission`; unit-test odd cents/zero.
+- [x] 6.2 Approval: `createTransfer("transfer:${mid}")` → tx `paid` + commission/transfer ledgers + contract `completed`; duplicate approval no-op.
+- [x] 6.3 Failure: fake throws → stays `approved`, 502, no seller ledger; credits sum = amount (payout spec).
 
 ## Phase 7: Hardening
 
-- [ ] 7.1 Run `pnpm exec tsc --noEmit` + `pnpm test` + `pnpm openapi`; commit regenerated `openapi.yaml`.
+- [x] 7.1 Run `pnpm exec tsc --noEmit` + `pnpm test` + `pnpm openapi`; commit regenerated `openapi.yaml`.

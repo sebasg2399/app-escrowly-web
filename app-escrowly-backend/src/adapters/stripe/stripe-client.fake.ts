@@ -24,6 +24,9 @@ export interface FakeStripeClient extends StripeClient {
     sign(rawBody: Buffer, timestamp?: number): string;
     emit(event: { id: string; type: string; data?: unknown }): WebhookEventLike;
   };
+  simulateTransferFailure(message: string): void;
+  clearTransferFailure(): void;
+  transferCount(): number;
   reset(): void;
 }
 
@@ -60,6 +63,7 @@ export function createFakeStripeClient(): FakeStripeClient {
   const accounts = new Map<string, ConnectAccount>();
   const idemKeys = new Set<string>();
   let webhookSecret: string | null = null;
+  let transferFailureMessage: string | null = null;
 
   function reserveIdempotency(key: string): boolean {
     if (idemKeys.has(key)) return false;
@@ -154,6 +158,9 @@ export function createFakeStripeClient(): FakeStripeClient {
     },
 
     async createTransfer(input: CreateTransferInput): Promise<TransferResult> {
+      if (transferFailureMessage) {
+        throw new Error(transferFailureMessage);
+      }
       if (!reserveIdempotency(input.idempotencyKey)) {
         const existing = [...transfers.values()].find(
           (t) => t.amount === input.amount && t.destination === input.destination,
@@ -219,6 +226,19 @@ export function createFakeStripeClient(): FakeStripeClient {
       transfers.clear();
       accounts.clear();
       idemKeys.clear();
+      transferFailureMessage = null;
+    },
+
+    simulateTransferFailure(message: string) {
+      transferFailureMessage = message;
+    },
+
+    clearTransferFailure() {
+      transferFailureMessage = null;
+    },
+
+    transferCount() {
+      return transfers.size;
     },
   };
 
