@@ -14,6 +14,7 @@ const ERROR_CODES = {
   CONFLICT: "CONFLICT",
   FORBIDDEN: "FORBIDDEN",
   RATE_LIMITED: "RATE_LIMITED",
+  UPSTREAM_ERROR: "UPSTREAM_ERROR",
   INTERNAL: "INTERNAL",
 } as const;
 
@@ -70,6 +71,11 @@ export const errorHandlerPlugin = fp(
       // 404 — unknown route (set below via setNotFoundHandler)
       if (error.statusCode === 404) {
         return reply.code(404).send(errorEnvelope(ERROR_CODES.NOT_FOUND, "Route not found"));
+      }
+
+      // 502 — upstream (e.g. Stripe) call failed; surface as UPSTREAM_ERROR.
+      if (error.statusCode === 502) {
+        return reply.code(502).send(errorEnvelope(ERROR_CODES.UPSTREAM_ERROR, error.message));
       }
 
       // Any other client error must stay a 4xx, never become a 500.

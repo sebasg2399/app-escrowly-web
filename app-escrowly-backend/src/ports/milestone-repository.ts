@@ -24,7 +24,7 @@ export interface MilestoneRepository {
     id: string,
     fromStatus: Milestone["status"],
     toStatus: Milestone["status"],
-    extra?: { paidAt?: Date },
+    extra?: { paidAt?: Date; stripeTransferId?: string },
     tx?: Tx,
   ): Promise<Milestone | null>;
 }
