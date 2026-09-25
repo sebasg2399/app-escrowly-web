@@ -288,6 +288,15 @@ describe("GET /contracts", () => {
     const body = JSON.parse(res.payload);
     expect(body).toHaveLength(1);
     expect(body[0].status).toBe("draft");
+    // The UI reads the counterparty and the milestone progress from the list,
+    // so the list MUST include the relations (regression: it once returned bare
+    // contract rows and the contracts UI crashed on `milestones.map`).
+    expect(Array.isArray(body[0].milestones)).toBe(true);
+    expect(body[0].milestones).toHaveLength(1);
+    expect(body[0].client).toMatchObject({ email: "client-list@example.com" });
+    expect(body[0].seller).toMatchObject({ email: "seller-list@example.com" });
+    expect(typeof body[0].client.id).toBe("string");
+    expect(typeof body[0].seller.id).toBe("string");
   });
 
   it("returns empty list for user with no contracts", async () => {

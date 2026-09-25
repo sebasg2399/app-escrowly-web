@@ -6,6 +6,14 @@ import {
   Tx,
 } from "../../ports/contract-repository.js";
 
+const participantSelect = { id: true, email: true, name: true } as const;
+
+const contractRelations = {
+  client: { select: participantSelect },
+  seller: { select: participantSelect },
+  milestones: { orderBy: { createdAt: "asc" as const } },
+} as const;
+
 export function createPrismaContractRepository(prisma: PrismaClient): ContractRepository {
   const client = (tx?: Tx) => (tx ?? prisma);
 
@@ -13,15 +21,16 @@ export function createPrismaContractRepository(prisma: PrismaClient): ContractRe
     async findById(id, tx): Promise<ContractWithMilestones | null> {
       return client(tx).contract.findUnique({
         where: { id },
-        include: { milestones: { orderBy: { createdAt: "asc" } } },
+        include: contractRelations,
       }) as Promise<ContractWithMilestones | null>;
     },
 
-    async listByParticipant(userId, tx) {
+    async listByParticipant(userId, tx): Promise<ContractWithMilestones[]> {
       return client(tx).contract.findMany({
         where: { OR: [{ clientId: userId }, { sellerId: userId }] },
+        include: contractRelations,
         orderBy: { createdAt: "desc" },
-      });
+      }) as Promise<ContractWithMilestones[]>;
     },
 
     async create(input: CreateContractInput, tx): Promise<ContractWithMilestones> {
@@ -36,7 +45,7 @@ export function createPrismaContractRepository(prisma: PrismaClient): ContractRe
             })),
           },
         },
-        include: { milestones: { orderBy: { createdAt: "asc" } } },
+        include: contractRelations,
       }) as Promise<ContractWithMilestones>;
     },
 
