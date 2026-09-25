@@ -1,5 +1,5 @@
 import { PrismaClient, User } from "@prisma/client";
-import { UserRepository } from "../../ports/user-repository.js";
+import { StripeAccountFlags, UserRepository } from "../../ports/user-repository.js";
 
 export function createPrismaUserRepository(prisma: PrismaClient): UserRepository {
   return {
@@ -26,6 +26,20 @@ export function createPrismaUserRepository(prisma: PrismaClient): UserRepository
         where: { id },
         data: {
           ...(data.name !== undefined && { name: data.name }),
+        },
+      });
+    },
+
+    async findByStripeAccountId(stripeAccountId: string): Promise<User | null> {
+      return prisma.user.findFirst({ where: { stripeAccountId } });
+    },
+
+    async updateStripeAccountFlags(id: string, flags: StripeAccountFlags): Promise<User> {
+      return prisma.user.update({
+        where: { id },
+        data: {
+          stripeAccountPayoutsEnabled: flags.payoutsEnabled,
+          stripeAccountDetailsSubmitted: flags.detailsSubmitted,
         },
       });
     },
