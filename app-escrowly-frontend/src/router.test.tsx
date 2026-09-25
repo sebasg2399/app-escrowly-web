@@ -15,10 +15,7 @@ describe("app router wiring", () => {
   it("renders the login route against the real route tree", async () => {
     server.use(
       http.post("/auth/refresh", () =>
-        HttpResponse.json(
-          { code: "UNAUTHORIZED", message: "No token" },
-          { status: 401 },
-        ),
+        HttpResponse.json({ code: "UNAUTHORIZED", message: "No token" }, { status: 401 }),
       ),
     );
 
@@ -31,9 +28,7 @@ describe("app router wiring", () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByRole("button", { name: /sign in/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /sign in/i })).toBeInTheDocument();
     });
   });
 });

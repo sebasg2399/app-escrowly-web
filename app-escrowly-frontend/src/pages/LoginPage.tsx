@@ -11,8 +11,7 @@ function PostLoginRedirect() {
   useEffect(() => {
     if (status === "authed") {
       const from = (location.state as Record<string, unknown> | null)?.from as
-        | { pathname: string }
-        | undefined;
+        { pathname: string } | undefined;
       navigate(from?.pathname ?? "/app", { replace: true });
     }
   }, [status, navigate, location]);
@@ -23,9 +22,7 @@ function PostLoginRedirect() {
 export default function LoginPage() {
   const [sessionExpiredMessage] = useState<string | null>(() => {
     const state = window.history.state?.usr as Record<string, unknown> | null;
-    return typeof state?.sessionExpiredMessage === "string"
-      ? state.sessionExpiredMessage
-      : null;
+    return typeof state?.sessionExpiredMessage === "string" ? state.sessionExpiredMessage : null;
   });
 
   return (

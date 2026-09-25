@@ -19,7 +19,7 @@ export const handlers = [
   }),
 
   http.post("/auth/register", async ({ request }) => {
-    const body = await request.json() as Record<string, string>;
+    const body = (await request.json()) as Record<string, string>;
     if (body.email === "exists@example.com") {
       return HttpResponse.json(
         { code: "CONFLICT", message: "Email already exists" },
@@ -30,7 +30,7 @@ export const handlers = [
   }),
 
   http.post("/auth/login", async ({ request }) => {
-    const body = await request.json() as Record<string, string>;
+    const body = (await request.json()) as Record<string, string>;
     if (body.email !== "user@example.com" || body.password !== "Correct1") {
       return HttpResponse.json(
         { code: "INVALID_CREDENTIALS", message: "Invalid email or password" },
@@ -67,16 +67,24 @@ export const handlers = [
         { status: 401 },
       );
     }
-    const body = await request.json() as Record<string, string>;
+    const body = (await request.json()) as Record<string, string>;
     if (!body.name || body.name.length === 0) {
       return HttpResponse.json(
-        { code: "VALIDATION_ERROR", message: "Validation failed", details: { name: ["Name is required"] } },
+        {
+          code: "VALIDATION_ERROR",
+          message: "Validation failed",
+          details: { name: ["Name is required"] },
+        },
         { status: 400 },
       );
     }
     if (body.name.length > 100) {
       return HttpResponse.json(
-        { code: "VALIDATION_ERROR", message: "Validation failed", details: { name: ["Name is too long"] } },
+        {
+          code: "VALIDATION_ERROR",
+          message: "Validation failed",
+          details: { name: ["Name is too long"] },
+        },
         { status: 400 },
       );
     }

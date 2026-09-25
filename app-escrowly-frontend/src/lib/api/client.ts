@@ -8,12 +8,7 @@ let onSessionExpired: ((message: string) => void) | null = null;
 
 // A 401 from these endpoints must NOT trigger the silent-refresh interceptor
 // (e.g. a wrong-password login would otherwise surface as "session expired").
-const AUTH_PATHS = new Set([
-  "/auth/login",
-  "/auth/register",
-  "/auth/refresh",
-  "/auth/logout",
-]);
+const AUTH_PATHS = new Set(["/auth/login", "/auth/register", "/auth/refresh", "/auth/logout"]);
 
 export function getAccessToken(): string | null {
   return accessToken;
@@ -47,9 +42,7 @@ async function doRefresh(): Promise<void> {
 
   if (!res.ok) {
     clearSession();
-    const err = res.status === 401
-      ? new Error("SESSION_EXPIRED")
-      : new Error("REFRESH_FAILED");
+    const err = res.status === 401 ? new Error("SESSION_EXPIRED") : new Error("REFRESH_FAILED");
     (err as Error & { status?: number }).status = res.status;
     throw err;
   }

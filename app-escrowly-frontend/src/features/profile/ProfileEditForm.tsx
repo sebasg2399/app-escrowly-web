@@ -53,13 +53,7 @@ export default function ProfileEditForm({ profile, onCancel }: ProfileEditFormPr
   };
 
   if (success) {
-    return (
-      <Toast
-        variant="success"
-        message="Profile updated successfully."
-        onClose={onCancel}
-      />
-    );
+    return <Toast variant="success" message="Profile updated successfully." onClose={onCancel} />;
   }
 
   return (
@@ -113,9 +107,7 @@ export default function ProfileEditForm({ profile, onCancel }: ProfileEditFormPr
       </div>
 
       <div>
-        <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
-          Role
-        </label>
+        <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">Role</label>
         <div className="mt-1">
           <span className="inline-block rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-base text-neutral-500 cursor-not-allowed">
             {profile.role}

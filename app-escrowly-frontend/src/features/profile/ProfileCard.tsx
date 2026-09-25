@@ -42,10 +42,7 @@ export default function ProfileCard({ profile, onEdit }: ProfileCardProps) {
           <label className="text-xs font-medium text-neutral-500 uppercase tracking-wide">
             Email
           </label>
-          <p
-            className="mt-1 text-base text-neutral-500"
-            data-testid="profile-email"
-          >
+          <p className="mt-1 text-base text-neutral-500" data-testid="profile-email">
             {profile.email}
           </p>
         </div>

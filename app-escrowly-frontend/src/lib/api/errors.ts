@@ -6,34 +6,22 @@ export interface ApiError {
 }
 
 export function isApiError(err: unknown): err is ApiError {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    "code" in err &&
-    "message" in err
-  );
+  return typeof err === "object" && err !== null && "code" in err && "message" in err;
 }
 
 export function toApiError(status: number, body: unknown): ApiError {
-  if (
-    body &&
-    typeof body === "object" &&
-    "code" in body &&
-    "message" in body
-  ) {
+  if (body && typeof body === "object" && "code" in body && "message" in body) {
     return {
       code: String((body as Record<string, unknown>).code),
       message: String((body as Record<string, unknown>).message),
-      details: ((body as Record<string, unknown>).details as
-        | Record<string, string[]>
-        | undefined),
+      details: (body as Record<string, unknown>).details as Record<string, string[]> | undefined,
       status,
     };
   }
 
   return {
     code: `HTTP_${status}`,
-    message: (typeof body === "string" ? body : "Unknown error"),
+    message: typeof body === "string" ? body : "Unknown error",
     status,
   };
 }
