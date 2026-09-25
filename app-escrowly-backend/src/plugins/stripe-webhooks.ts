@@ -146,15 +146,33 @@ async function dispatch(
       return;
     case "transfer.created":
     case "transfer.failed":
-      app.log.info(
-        { eventId: event.id, type: event.type },
-        "Stripe transfer webhook acknowledged (payout slice finalizes transfer accounting)",
-      );
+      await handleTransferEvent(app, opts, event);
       return;
     default:
       app.log.info({ eventId: event.id, type: event.type }, "Unknown Stripe event type — ignored");
       return;
   }
+}
+
+async function handleTransferEvent(
+  app: FastifyInstance,
+  opts: StripeWebhooksPluginOptions,
+  event: WebhookEventLike,
+): Promise<void> {
+  const inserted = await opts.prisma.$transaction((tx) =>
+    opts.webhookEventRepository.tryInsert({ eventId: event.id, type: event.type }, tx),
+  );
+  if (!inserted) {
+    app.log.info(
+      { eventId: event.id, type: event.type },
+      "Duplicate Stripe transfer webhook — skipped",
+    );
+    return;
+  }
+  app.log.info(
+    { eventId: event.id, type: event.type },
+    "Stripe transfer webhook acknowledged (payout slice finalizes transfer accounting)",
+  );
 }
 
 async function handlePaymentIntentSucceeded(

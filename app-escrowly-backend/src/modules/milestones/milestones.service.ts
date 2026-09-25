@@ -6,6 +6,7 @@ import type { MilestoneRepository } from "../../ports/milestone-repository.js";
 import type { StripeClient } from "../../ports/stripe-client.js";
 import type { UserRepository } from "../../ports/user-repository.js";
 import { splitCommission } from "../payments/commission.js";
+import { assertParticipant } from "../../lib/authorization.js";
 
 function notFound(message: string): Error & { statusCode: number; code: string } {
   const err = new Error(message) as Error & { statusCode: number; code: string };
@@ -55,9 +56,7 @@ export class MilestonesService {
     if (!contract) {
       throw notFound("Contract not found");
     }
-    if (contract.clientId !== userId && contract.sellerId !== userId) {
-      throw forbidden("Not a participant of this contract");
-    }
+    assertParticipant(contract, userId);
     if (contract.sellerId !== userId) {
       throw forbidden("Only the seller can submit a milestone");
     }
@@ -81,9 +80,7 @@ export class MilestonesService {
     if (!contract) {
       throw notFound("Contract not found");
     }
-    if (contract.clientId !== userId && contract.sellerId !== userId) {
-      throw forbidden("Not a participant of this contract");
-    }
+    assertParticipant(contract, userId);
     if (contract.clientId !== userId) {
       throw forbidden("Only the client can fund a milestone");
     }
@@ -129,9 +126,7 @@ export class MilestonesService {
     if (!contract) {
       throw notFound("Contract not found");
     }
-    if (contract.clientId !== userId && contract.sellerId !== userId) {
-      throw forbidden("Not a participant of this contract");
-    }
+    assertParticipant(contract, userId);
     if (contract.clientId !== userId) {
       throw forbidden("Only the client can approve a milestone");
     }

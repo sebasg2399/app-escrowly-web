@@ -50,7 +50,7 @@ export function createStripeClient(opts: CreateStripeClientOptions): StripeClien
         },
         business_type: "individual",
         settings: {
-          payouts: { schedule: { delay_days: 7, interval: "manual" } },
+          payouts: { schedule: { interval: "manual" } },
         },
       });
       return { id: account.id };

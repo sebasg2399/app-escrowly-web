@@ -43,5 +43,12 @@ export function createPrismaUserRepository(prisma: PrismaClient): UserRepository
         },
       });
     },
+
+    async setStripeAccountId(id: string, stripeAccountId: string): Promise<User> {
+      return prisma.user.update({
+        where: { id },
+        data: { stripeAccountId },
+      });
+    },
   };
 }

@@ -27,6 +27,11 @@ export interface FakeStripeClient extends StripeClient {
   simulateTransferFailure(message: string): void;
   clearTransferFailure(): void;
   transferCount(): number;
+  accounts: Map<string, ConnectAccount>;
+  setAccountState(
+    accountId: string,
+    state: { payoutsEnabled?: boolean; detailsSubmitted?: boolean; chargesEnabled?: boolean },
+  ): void;
   reset(): void;
 }
 
@@ -235,6 +240,21 @@ export function createFakeStripeClient(): FakeStripeClient {
 
     clearTransferFailure() {
       transferFailureMessage = null;
+    },
+
+    accounts,
+
+    setAccountState(
+      accountId: string,
+      state: { payoutsEnabled?: boolean; detailsSubmitted?: boolean; chargesEnabled?: boolean },
+    ) {
+      const current = accounts.get(accountId) ?? buildAccount(accountId);
+      accounts.set(accountId, {
+        id: accountId,
+        payoutsEnabled: state.payoutsEnabled ?? current.payoutsEnabled,
+        detailsSubmitted: state.detailsSubmitted ?? current.detailsSubmitted,
+        chargesEnabled: state.chargesEnabled ?? current.chargesEnabled ?? true,
+      });
     },
 
     transferCount() {

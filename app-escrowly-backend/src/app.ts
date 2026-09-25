@@ -24,6 +24,8 @@ import { ContractsService } from "./modules/contracts/contracts.service.js";
 import { contractsRoutes } from "./modules/contracts/contracts.routes.js";
 import { MilestonesService } from "./modules/milestones/milestones.service.js";
 import { milestonesRoutes } from "./modules/milestones/milestones.routes.js";
+import { ConnectService } from "./modules/connect/connect.service.js";
+import { connectRoutes } from "./modules/connect/connect.routes.js";
 import { readFileSync, existsSync } from "node:fs";
 
 function readPackageVersion(): string {
@@ -133,6 +135,11 @@ export async function buildApp(): Promise<FastifyInstance> {
       stripeClient,
       prisma,
     ),
+  });
+
+  // Connect onboarding routes
+  await connectRoutes(app, {
+    connectService: new ConnectService(userRepo, stripeClient, prisma),
   });
 
   // --- Health check ---
