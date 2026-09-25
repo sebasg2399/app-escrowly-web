@@ -1,0 +1,14 @@
+change: escrowly-frontend-foundation
+title: "Escrowly Frontend Foundation (shell + auth + profile)"
+created: 2026-09-25
+artifact_store: openspec
+delivery_strategy: ask-on-risk
+current_phase: tasks
+phases:
+  propose: completed
+  spec: completed
+  design: completed
+  tasks: in_progress
+  apply: pending
+  verify: pending
+  archive: pending
