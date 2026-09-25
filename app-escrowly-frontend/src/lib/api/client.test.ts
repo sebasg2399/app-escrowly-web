@@ -205,6 +205,53 @@ describe("api client", () => {
     });
   });
 
+  describe("credentials (web-api-client R3)", () => {
+    it("sends credentials: 'include' on every request (GET / POST refresh)", async () => {
+      let captured: RequestCredentials | undefined;
+      let refreshCredentials: RequestCredentials | undefined;
+      let patchCredentials: RequestCredentials | undefined;
+
+      server.use(
+        http.get("/users/me", ({ request }) => {
+          captured = request.credentials;
+          return HttpResponse.json({
+            id: "1",
+            email: "a@b.com",
+            name: "A",
+            role: "client",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }),
+        http.post("/auth/refresh", ({ request }) => {
+          refreshCredentials = request.credentials;
+          return HttpResponse.json({ accessToken: "x" });
+        }),
+        http.patch("/users/me", ({ request }) => {
+          patchCredentials = request.credentials;
+          return HttpResponse.json({
+            id: "1",
+            email: "a@b.com",
+            name: "A",
+            role: "client",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          });
+        }),
+      );
+
+      setAccessToken("test-token");
+      await api.get("/users/me");
+      expect(captured).toBe("include");
+
+      await api.post("/auth/refresh");
+      expect(refreshCredentials).toBe("include");
+
+      await api.patch("/users/me", { name: "B" });
+      expect(patchCredentials).toBe("include");
+    });
+  });
+
   describe("error mapping", () => {
     it("throws ApiError with details on 400", async () => {
       server.use(
