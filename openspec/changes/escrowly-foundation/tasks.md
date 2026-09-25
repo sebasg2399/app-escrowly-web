@@ -35,30 +35,30 @@ Chain strategy: stacked-to-main
 
 ## Phase 2: Core Implementation
 
-- [ ] 2.1 Create `src/modules/auth/password.ts` (argon2id hash/verify)
-- [ ] 2.2 Create `src/ports/user-repository.ts` + `session-repository.ts` and `src/adapters/prisma/` impls
-- [ ] 2.3 Create `src/modules/auth/auth.schemas.ts` (register/login/refresh zod, password strength)
-- [ ] 2.4 Create `src/modules/auth/auth.service.ts` (dup email → 409; bad login → 401; 5-min JWT + opaque refresh, rotate; logout sets `revoked_at`)
-- [ ] 2.5 Create `src/plugins/auth.ts` (JWT HS256 verify + `access_jti` revocation lookup) and `src/plugins/rate-limit.ts` (→ 429)
-- [ ] 2.6 Create `src/modules/auth/auth.routes.ts` (register/login/logout/refresh; httpOnly+Secure+SameSite=Strict cookie)
+- [x] 2.1 Create `src/modules/auth/password.ts` (argon2id hash/verify)
+- [x] 2.2 Create `src/ports/user-repository.ts` + `session-repository.ts` and `src/adapters/prisma/` impls
+- [x] 2.3 Create `src/modules/auth/auth.schemas.ts` (register/login/refresh zod, password strength)
+- [x] 2.4 Create `src/modules/auth/auth.service.ts` (dup email → 409; bad login → 401; 5-min JWT + opaque refresh, rotate; logout sets `revoked_at`)
+- [x] 2.5 Create `src/plugins/auth.ts` (JWT HS256 verify + `access_jti` revocation lookup) and `src/plugins/rate-limit.ts` (→ 429)
+- [x] 2.6 Create `src/modules/auth/auth.routes.ts` (register/login/logout/refresh; httpOnly+Secure+SameSite=Strict cookie)
 - [ ] 2.7 Create `src/modules/users/users.schemas.ts` + `users.service.ts` (profile omits `passwordHash`; PATCH rejects role/`passwordHash`)
 - [ ] 2.8 Create `src/modules/users/users.routes.ts` (`GET /users/me`, `PATCH /users/me`)
 
 ## Phase 3: Integration / Wiring
 
-- [ ] 3.1 Register plugins + modules in `buildApp()` (logger, error-handler, rate-limit, auth, routes)
+- [~] 3.1 Register plugins + modules in `buildApp()` (logger, error-handler, rate-limit, auth, routes) — auth wired; users/swagger pending
 - [ ] 3.2 Wire `@fastify/swagger` from route zod schemas; add `pnpm openapi` dumping `openapi.yaml`
 
 ## Phase 4: Testing
 
-- [ ] 4.1 Test-DB helper: `escrowly_test` via `DATABASE_URL`, truncate between tests
-- [ ] 4.2 Unit tests: password hash/verify, token encode/decode, zod validation
-- [ ] 4.3 `app.inject()`: register → 201 + token; duplicate email → 409; weak password → 400 + field details
-- [ ] 4.4 Login: valid → token; wrong password → 401
-- [ ] 4.5 Logout: revoked session → access rejected 401
+- [x] 4.1 Test-DB helper: `escrowly_test` via `DATABASE_URL`, truncate between tests
+- [x] 4.2 Unit tests: password hash/verify, token encode/decode, zod validation
+- [x] 4.3 `app.inject()`: register → 201 + token; duplicate email → 409; weak password → 400 + field details
+- [x] 4.4 Login: valid → token; wrong password → 401
+- [x] 4.5 Logout: revoked session → access rejected 401
 - [ ] 4.6 `/users/me`: no `passwordHash`; PATCH field persists; role-escalation rejected
-- [ ] 4.7 Expired/malformed token → 401; unauthenticated route → 401 envelope; unknown route → 404
-- [ ] 4.8 Excessive auth attempts → 429
+- [x] 4.7 Expired/malformed token → 401; unauthenticated route → 401 envelope; unknown route → 404
+- [x] 4.8 Excessive auth attempts → 429
 - [ ] 4.9 Verify `openapi.yaml` describes health, auth, users routes
 
 ## Phase 5: Cleanup

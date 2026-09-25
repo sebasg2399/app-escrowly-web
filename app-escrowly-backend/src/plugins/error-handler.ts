@@ -24,13 +24,15 @@ function errorEnvelope(
   return { code, message, ...(details ? { details } : {}) };
 }
 
-export const errorHandlerPlugin = fp(async (app: FastifyInstance) => {
+export const errorHandlerPlugin = fp(
+  async (app: FastifyInstance) => {
   // Fastify schema validation errors → 400 with field-level details
-  app.setErrorHandler((error: FastifyError | AppError, _req, reply) => {
+  app.setErrorHandler((error: FastifyError, _req, reply) => {
     // Fastify validation error (body/query/params/schema)
-    if (error.validation) {
+    const fe = error as FastifyError & { validation?: any[] };
+    if (fe.validation) {
       const details: Record<string, string[]> = {};
-      for (const v of error.validation) {
+      for (const v of fe.validation) {
         const field = (v.instancePath || "body").replace(/^\//, "") || "body";
         details[field] = details[field] || [];
         details[field].push(v.message ?? "invalid value");
@@ -47,7 +49,7 @@ export const errorHandlerPlugin = fp(async (app: FastifyInstance) => {
     // Known application error with explicit code + status
     if (error.code && Object.values(ERROR_CODES).includes(error.code as any)) {
       return reply
-        .code(error.statusCode ?? 500)
+        .code((error as AppError).statusCode ?? 500)
         .send(
           errorEnvelope(
             error.code,
@@ -99,4 +101,6 @@ export const errorHandlerPlugin = fp(async (app: FastifyInstance) => {
       .code(404)
       .send(errorEnvelope(ERROR_CODES.NOT_FOUND, "Route not found"));
   });
-});
+},
+  { name: "error-handler-plugin" },
+);
