@@ -36,12 +36,12 @@ Chain strategy: stacked-to-main
 
 ## Phase 2: API + Auth
 
-- [ ] 2.1 Add openapi-typescript script; generate `src/lib/api/types.generated.ts` from `../app-escrowly-backend/openapi.yaml`
-- [ ] 2.2 `src/lib/api/errors.ts`: non-2xx → `ApiError {code,message,details}`; unit tests
-- [ ] 2.3 `src/lib/api/client.ts`: get/post/patch, `credentials:"include"`, Bearer module token, 401 → single-flight refresh → retry once
-- [ ] 2.4 `src/features/auth/auth-context.tsx` + `useAuth.ts`: status loading/authed/guest; register/login/logout/restore; module-scope token
-- [ ] 2.5 `LoginForm.tsx` + `RegisterForm.tsx` (RHF+zod): `details`→field errors, 409→email, 401→non-field, 429→disable+banner
-- [ ] 2.6 Tests: token never persisted; 401s → one refresh; refresh-fail → clear + redirect
+- [x] 2.1 Add openapi-typescript script; generate `src/lib/api/types.generated.ts` from `../app-escrowly-backend/openapi.yaml`
+- [x] 2.2 `src/lib/api/errors.ts`: non-2xx → `ApiError {code,message,details}`; unit tests
+- [x] 2.3 `src/lib/api/client.ts`: get/post/patch, `credentials:"include"`, Bearer module token, 401 → single-flight refresh → retry once
+- [x] 2.4 `src/features/auth/auth-context.tsx` + `useAuth.ts`: status loading/authed/guest; register/login/logout/restore; module-scope token
+- [x] 2.5 `LoginForm.tsx` + `RegisterForm.tsx` (RHF+zod): `details`→field errors, 409→email, 401→non-field, 429→disable+banner
+- [x] 2.6 Tests: token never persisted; 401s → one refresh; refresh-fail → clear + redirect
 
 ## Phase 3: Shell + Routing
 
