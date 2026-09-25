@@ -29,9 +29,7 @@ describe("AuthProvider", () => {
   describe("restore", () => {
     it("transitions to authed on successful refresh + profile fetch", async () => {
       server.use(
-        http.post("/auth/refresh", () =>
-          HttpResponse.json({ accessToken: "restored-token" }),
-        ),
+        http.post("/auth/refresh", () => HttpResponse.json({ accessToken: "restored-token" })),
         http.get("/users/me", () =>
           HttpResponse.json({
             id: "1",
@@ -51,9 +49,7 @@ describe("AuthProvider", () => {
         return (
           <div>
             <span data-testid="status">{auth.status}</span>
-            {auth.profile && (
-              <span data-testid="profile-name">{auth.profile.name}</span>
-            )}
+            {auth.profile && <span data-testid="profile-name">{auth.profile.name}</span>}
           </div>
         );
       }
@@ -67,19 +63,14 @@ describe("AuthProvider", () => {
       });
 
       expect(screen.getByTestId("status").textContent).toBe("authed");
-      expect(screen.getByTestId("profile-name").textContent).toBe(
-        "Restored User",
-      );
+      expect(screen.getByTestId("profile-name").textContent).toBe("Restored User");
       expect(getAccessToken()).toBe("restored-token");
     });
 
     it("transitions to guest when refresh fails (401)", async () => {
       server.use(
         http.post("/auth/refresh", () =>
-          HttpResponse.json(
-            { code: "UNAUTHORIZED", message: "No refresh token" },
-            { status: 401 },
-          ),
+          HttpResponse.json({ code: "UNAUTHORIZED", message: "No refresh token" }, { status: 401 }),
         ),
       );
 
@@ -121,11 +112,8 @@ describe("AuthProvider", () => {
         ),
       );
 
-      let registerFn: ((data: {
-        name: string;
-        email: string;
-        password: string;
-      }) => Promise<void>) | null = null;
+      let registerFn:
+        ((data: { name: string; email: string; password: string }) => Promise<void>) | null = null;
       function RegisterTester() {
         const auth = useAuth();
         registerFn = auth.register;
@@ -150,9 +138,7 @@ describe("AuthProvider", () => {
   describe("login", () => {
     it("sets authed status and profile on success", async () => {
       server.use(
-        http.post("/auth/login", () =>
-          HttpResponse.json({ accessToken: "login-token" }),
-        ),
+        http.post("/auth/login", () => HttpResponse.json({ accessToken: "login-token" })),
         http.get("/users/me", () =>
           HttpResponse.json({
             id: "1",
@@ -165,10 +151,7 @@ describe("AuthProvider", () => {
         ),
       );
 
-      let loginFn: ((data: {
-        email: string;
-        password: string;
-      }) => Promise<void>) | null = null;
+      let loginFn: ((data: { email: string; password: string }) => Promise<void>) | null = null;
       function LoginTester() {
         const auth = useAuth();
         loginFn = auth.login;
@@ -188,11 +171,7 @@ describe("AuthProvider", () => {
 
   describe("logout", () => {
     it("clears session and sets guest status", async () => {
-      server.use(
-        http.post("/auth/logout", () =>
-          new HttpResponse(null, { status: 204 }),
-        ),
-      );
+      server.use(http.post("/auth/logout", () => new HttpResponse(null, { status: 204 })));
 
       let logoutFn: (() => Promise<void>) | null = null;
       function LogoutTester() {

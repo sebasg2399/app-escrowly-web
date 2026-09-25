@@ -35,7 +35,10 @@ export default function RegisterForm() {
           return;
         }
         if (err.status === 409) {
-          setError("email", { type: "server", message: "An account with this email already exists" });
+          setError("email", {
+            type: "server",
+            message: "An account with this email already exists",
+          });
           return;
         }
         if (err.details) {
@@ -55,9 +58,7 @@ export default function RegisterForm() {
 
   if (rateLimited) {
     return (
-      <Banner variant="warning">
-        Too many attempts. Please wait a moment and try again.
-      </Banner>
+      <Banner variant="warning">Too many attempts. Please wait a moment and try again.</Banner>
     );
   }
 

@@ -4,7 +4,8 @@ import { useRef, useEffect } from "react";
 import { MemoryRouter, Routes, Route, useLocation } from "react-router";
 import { http, HttpResponse } from "msw";
 import { server } from "./test/mocks/server";
-import { AuthProvider, useAuth } from "./features/auth/auth-context";
+import { AuthProvider } from "./features/auth/auth-context";
+import { useAuth } from "./features/auth/useAuth";
 import AuthGuard from "./routes/AuthGuard";
 import RootRedirect from "./routes/RootRedirect";
 import NotFoundPage from "./pages/NotFoundPage";
@@ -35,10 +36,7 @@ function BootRestore() {
   return null;
 }
 
-function renderWithProviders(
-  initialEntries: string[],
-  ui: React.ReactNode,
-) {
+function renderWithProviders(initialEntries: string[], ui: React.ReactNode) {
   return render(
     <QueryClientProvider client={queryClient}>
       <MemoryRouter initialEntries={initialEntries}>
@@ -203,7 +201,7 @@ describe("Profile edit", () => {
         }),
       ),
       http.patch("/users/me", async ({ request }) => {
-        const body = await request.json() as { name: string };
+        const body = (await request.json()) as { name: string };
         return HttpResponse.json({
           id: "1",
           email: "user@example.com",

@@ -66,6 +66,6 @@ Chain strategy: stacked-to-main
 
 ## Phase 6: Cleanup
 
-- [ ] 6.1 Run ESLint + Prettier; fix violations
-- [ ] 6.2 `app-escrowly-frontend/README.md`: setup, env, proxy, scripts
-- [ ] 6.3 Verify: `pnpm exec tsc --noEmit`, `pnpm test`, `pnpm build`
+- [x] 6.1 Run ESLint + Prettier; fix violations
+- [x] 6.2 `app-escrowly-frontend/README.md`: setup, env, proxy, scripts
+- [x] 6.3 Verify: `pnpm exec tsc --noEmit`, `pnpm test`, `pnpm build`

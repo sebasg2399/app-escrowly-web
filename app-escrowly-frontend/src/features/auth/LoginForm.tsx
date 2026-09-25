@@ -41,9 +41,7 @@ export default function LoginForm() {
 
   if (rateLimited) {
     return (
-      <Banner variant="warning">
-        Too many attempts. Please wait a moment and try again.
-      </Banner>
+      <Banner variant="warning">Too many attempts. Please wait a moment and try again.</Banner>
     );
   }
 

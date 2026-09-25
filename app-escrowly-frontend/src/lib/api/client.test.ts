@@ -50,9 +50,7 @@ describe("api client", () => {
       const lsSpy = vi.spyOn(Storage.prototype, "setItem");
 
       server.use(
-        http.post("/auth/login", () =>
-          HttpResponse.json({ accessToken: "fresh-token" }),
-        ),
+        http.post("/auth/login", () => HttpResponse.json({ accessToken: "fresh-token" })),
         http.get("/users/me", () =>
           HttpResponse.json({
             id: "1",
@@ -119,10 +117,7 @@ describe("api client", () => {
 
       server.use(
         http.get("/users/me", () =>
-          HttpResponse.json(
-            { code: "UNAUTHORIZED", message: "Token expired" },
-            { status: 401 },
-          ),
+          HttpResponse.json({ code: "UNAUTHORIZED", message: "Token expired" }, { status: 401 }),
         ),
         http.post("/auth/refresh", () => {
           refreshCount++;
@@ -130,11 +125,7 @@ describe("api client", () => {
         }),
       );
 
-      await Promise.allSettled([
-        api.get("/users/me"),
-        api.get("/users/me"),
-        api.get("/users/me"),
-      ]);
+      await Promise.allSettled([api.get("/users/me"), api.get("/users/me"), api.get("/users/me")]);
 
       expect(refreshCount).toBe(1);
     });
@@ -198,10 +189,7 @@ describe("api client", () => {
     it("clears session and throws SESSION_EXPIRED on refresh 401", async () => {
       server.use(
         http.get("/users/me", () =>
-          HttpResponse.json(
-            { code: "UNAUTHORIZED", message: "Token expired" },
-            { status: 401 },
-          ),
+          HttpResponse.json({ code: "UNAUTHORIZED", message: "Token expired" }, { status: 401 }),
         ),
         http.post("/auth/refresh", () =>
           HttpResponse.json(
@@ -247,10 +235,7 @@ describe("api client", () => {
     it("throws ApiError with status 409", async () => {
       server.use(
         http.post("/auth/register", () =>
-          HttpResponse.json(
-            { code: "CONFLICT", message: "Email already exists" },
-            { status: 409 },
-          ),
+          HttpResponse.json({ code: "CONFLICT", message: "Email already exists" }, { status: 409 }),
         ),
       );
 

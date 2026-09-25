@@ -1,28 +1,8 @@
-import { createContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { useState, useCallback, useEffect, type ReactNode } from "react";
 import { useNavigate } from "react-router";
 import { api, setAccessToken, clearSession, registerOnSessionExpired } from "../../lib/api/client";
-import type { paths } from "../../lib/api/types.generated";
-
-type Profile = paths["/users/me"]["get"]["responses"][200]["content"]["application/json"];
-
-export type AuthStatus = "loading" | "authed" | "guest";
-
-interface AuthContextValue {
-  status: AuthStatus;
-  profile: Profile | null;
-  register: (data: {
-    name: string;
-    email: string;
-    password: string;
-  }) => Promise<void>;
-  login: (data: { email: string; password: string }) => Promise<void>;
-  logout: () => Promise<void>;
-  restore: () => Promise<void>;
-}
-
-export const AuthContext = createContext<AuthContextValue | null>(null);
-
-export { useAuth } from "./useAuth";
+import { AuthContext } from "./auth-types";
+import type { AuthStatus, Profile } from "./auth-types";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
@@ -53,27 +33,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const register = useCallback(
-    async (data: { name: string; email: string; password: string }) => {
-      const res = await api.post<{ accessToken: string }>("/auth/register", data);
-      setAccessToken(res.accessToken);
-      const me = await api.get<Profile>("/users/me");
-      setProfile(me);
-      setStatus("authed");
-    },
-    [],
-  );
+  const register = useCallback(async (data: { name: string; email: string; password: string }) => {
+    const res = await api.post<{ accessToken: string }>("/auth/register", data);
+    setAccessToken(res.accessToken);
+    const me = await api.get<Profile>("/users/me");
+    setProfile(me);
+    setStatus("authed");
+  }, []);
 
-  const login = useCallback(
-    async (data: { email: string; password: string }) => {
-      const res = await api.post<{ accessToken: string }>("/auth/login", data);
-      setAccessToken(res.accessToken);
-      const me = await api.get<Profile>("/users/me");
-      setProfile(me);
-      setStatus("authed");
-    },
-    [],
-  );
+  const login = useCallback(async (data: { email: string; password: string }) => {
+    const res = await api.post<{ accessToken: string }>("/auth/login", data);
+    setAccessToken(res.accessToken);
+    const me = await api.get<Profile>("/users/me");
+    setProfile(me);
+    setStatus("authed");
+  }, []);
 
   const logout = useCallback(async () => {
     try {
@@ -87,9 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ status, profile, register, login, logout, restore }}
-    >
+    <AuthContext.Provider value={{ status, profile, register, login, logout, restore }}>
       {children}
     </AuthContext.Provider>
   );
