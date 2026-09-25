@@ -7,8 +7,19 @@ if (existsSync(".env")) {
   process.loadEnvFile(".env");
 }
 
-// Note: tests override DATABASE_URL to "escrowly_test" via env var.
-const envSchema = z.object({
+// Tests run with NODE_ENV=test, where Stripe credentials are optional.
+// In dev/prod the backend refuses to boot without them.
+const isTest = process.env.NODE_ENV === "test";
+
+const stripeSchema = z.object({
+  STRIPE_SECRET_KEY: z.string().min(1).optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().min(1).optional(),
+  STRIPE_API_VERSION: z.string().default("2024-06-20"),
+  STRIPE_CONNECT_REFRESH_URL: z.string().url().optional(),
+  STRIPE_CONNECT_RETURN_URL: z.string().url().optional(),
+});
+
+const baseSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.string().url().or(z.string().startsWith("postgresql://")),
   JWT_SECRET: z.string().min(1),
@@ -18,6 +29,28 @@ const envSchema = z.object({
   COOKIE_NAME: z.string().default("escrowly_refresh"),
 });
 
-export const env = envSchema.parse(process.env);
+const envSchema = baseSchema.merge(stripeSchema);
 
+const parsed = envSchema.parse(process.env);
+
+function assertRequiredInNonTest(parsedEnv: z.infer<typeof envSchema>): void {
+  if (isTest) return;
+  const required = [
+    "STRIPE_SECRET_KEY",
+    "STRIPE_WEBHOOK_SECRET",
+    "STRIPE_CONNECT_REFRESH_URL",
+    "STRIPE_CONNECT_RETURN_URL",
+  ] as const;
+  for (const key of required) {
+    if (!parsedEnv[key]) {
+      throw new Error(
+        `Missing required env var: ${key} (required when NODE_ENV !== "test")`,
+      );
+    }
+  }
+}
+
+assertRequiredInNonTest(parsed);
+
+export const env = parsed;
 export type Env = z.infer<typeof envSchema>;

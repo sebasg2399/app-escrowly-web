@@ -13,18 +13,49 @@ enum Role {
   admin
 }
 
+enum ContractStatus {
+  draft
+  active
+  completed
+  cancelled
+}
+
+enum MilestoneStatus {
+  pending
+  funded
+  in_review
+  disputed
+  approved
+  paid
+}
+
+enum LedgerEntryKind {
+  platform_receipt
+  commission_credit
+  transfer_credit
+}
+
+enum LedgerEntrySide {
+  credit
+  debit
+}
+
 model User {
-  id                 String    @id @default(uuid())
-  email              String    @unique
-  name               String    @map("name")
-  passwordHash       String    @map("password_hash")
-  role               Role      @default(client)
-  stripeCustomerId   String?   @map("stripe_customer_id")
-  stripeAccountId    String?   @map("stripe_account_id")
-  subscriptionStatus String?   @map("subscription_status")
-  createdAt          DateTime  @default(now()) @map("created_at")
-  updatedAt          DateTime  @updatedAt      @map("updated_at")
-  sessions           Session[]
+  id                            String    @id @default(uuid())
+  email                         String    @unique
+  name                          String    @map("name")
+  passwordHash                  String    @map("password_hash")
+  role                          Role      @default(client)
+  stripeCustomerId              String?   @map("stripe_customer_id")
+  stripeAccountId               String?   @map("stripe_account_id")
+  stripeAccountPayoutsEnabled   Boolean   @default(false) @map("stripe_account_payouts_enabled")
+  stripeAccountDetailsSubmitted Boolean   @default(false) @map("stripe_account_details_submitted")
+  subscriptionStatus            String?   @map("subscription_status")
+  createdAt                     DateTime  @default(now()) @map("created_at")
+  updatedAt                     DateTime  @updatedAt      @map("updated_at")
+  sessions                      Session[]
+  clientContracts               Contract[] @relation("ContractClient")
+  sellerContracts               Contract[] @relation("ContractSeller")
 
   @@map("users")
 }
@@ -41,4 +72,68 @@ model Session {
 
   @@index([userId])
   @@map("sessions")
+}
+
+model Contract {
+  id        String         @id @default(uuid())
+  clientId  String         @map("client_id")
+  sellerId  String         @map("seller_id")
+  client    User           @relation("ContractClient", fields: [clientId], references: [id])
+  seller    User           @relation("ContractSeller", fields: [sellerId], references: [id])
+  status    ContractStatus @default(draft)
+  createdAt DateTime       @default(now()) @map("created_at")
+  updatedAt DateTime       @updatedAt      @map("updated_at")
+  milestones Milestone[]
+  ledgerEntries LedgerEntry[]
+
+  @@index([clientId])
+  @@index([sellerId])
+  @@map("contracts")
+}
+
+model Milestone {
+  id                    String          @id @default(uuid())
+  contractId            String          @map("contract_id")
+  contract              Contract        @relation(fields: [contractId], references: [id])
+  title                 String
+  amount                Int
+  currency              String          @default("usd")
+  status                MilestoneStatus @default(pending)
+  stripePaymentIntentId String?         @unique @map("stripe_payment_intent_id")
+  stripeTransferId      String?         @unique @map("stripe_transfer_id")
+  paidAt                DateTime?       @map("paid_at")
+  createdAt             DateTime        @default(now()) @map("created_at")
+  updatedAt             DateTime        @updatedAt      @map("updated_at")
+  ledgerEntries         LedgerEntry[]
+
+  @@index([contractId])
+  @@map("milestones")
+}
+
+model LedgerEntry {
+  id             String          @id @default(uuid())
+  milestoneId    String?         @map("milestone_id")
+  milestone      Milestone?      @relation(fields: [milestoneId], references: [id])
+  contractId     String?         @map("contract_id")
+  contract       Contract?       @relation(fields: [contractId], references: [id])
+  kind           LedgerEntryKind
+  side           LedgerEntrySide
+  amount         Int
+  currency       String          @default("usd")
+  reference      String?
+  idempotencyKey String          @unique @map("idempotency_key")
+  createdAt      DateTime        @default(now()) @map("created_at")
+
+  @@index([milestoneId])
+  @@index([contractId])
+  @@map("ledger_entries")
+}
+
+model StripeWebhookEvent {
+  id        String   @id @default(uuid())
+  eventId   String   @unique @map("event_id")
+  type      String
+  receivedAt DateTime @default(now()) @map("received_at")
+
+  @@map("stripe_webhook_events")
 }

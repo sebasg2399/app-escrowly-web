@@ -228,5 +228,10 @@ paths:
                 required:
                   - status
                   - timestamp
+  /webhooks/stripe:
+    post:
+      responses:
+        "200":
+          description: Default Response
 servers:
   - url: http://localhost:3000
