@@ -3,12 +3,12 @@ title: "Escrowly Foundation (backend-only)"
 created: 2026-09-24
 artifact_store: openspec
 delivery_strategy: ask-on-risk
-current_phase: apply
+current_phase: verify
 phases:
   propose: completed
   spec: completed
   design: completed
   tasks: completed
-  apply: in_progress
+  apply: completed
   verify: pending
   archive: pending

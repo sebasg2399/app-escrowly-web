@@ -1,9 +1,7 @@
 import { PrismaClient, Session } from "@prisma/client";
 import { SessionRepository } from "../../ports/session-repository.js";
 
-export function createPrismaSessionRepository(
-  prisma: PrismaClient,
-): SessionRepository {
+export function createPrismaSessionRepository(prisma: PrismaClient): SessionRepository {
   return {
     async findByAccessJti(jti: string): Promise<Session | null> {
       return prisma.session.findUnique({ where: { accessJti: jti } });

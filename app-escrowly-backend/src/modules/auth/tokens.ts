@@ -35,10 +35,7 @@ export function verifyAccessToken(
   };
 }
 
-export function buildRefreshCookieValue(
-  sessionId: string,
-  secret: string,
-): string {
+export function buildRefreshCookieValue(sessionId: string, secret: string): string {
   return `${sessionId}.${secret}`;
 }
 

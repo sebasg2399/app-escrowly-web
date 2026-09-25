@@ -37,9 +37,10 @@ export class UsersService {
       };
       err.statusCode = 403;
       err.code = "FORBIDDEN";
-      err.details = Object.fromEntries(
-        forbidden.map((f) => [f, [`Cannot update ${f}`]]),
-      ) as Record<string, string[]>;
+      err.details = Object.fromEntries(forbidden.map((f) => [f, [`Cannot update ${f}`]])) as Record<
+        string,
+        string[]
+      >;
       throw err;
     }
 

@@ -1,9 +1,7 @@
 import { PrismaClient, User } from "@prisma/client";
 import { UserRepository } from "../../ports/user-repository.js";
 
-export function createPrismaUserRepository(
-  prisma: PrismaClient,
-): UserRepository {
+export function createPrismaUserRepository(prisma: PrismaClient): UserRepository {
   return {
     async findByEmail(email: string): Promise<User | null> {
       return prisma.user.findUnique({ where: { email } });
@@ -13,11 +11,7 @@ export function createPrismaUserRepository(
       return prisma.user.findUnique({ where: { id } });
     },
 
-    async create(data: {
-      email: string;
-      name: string;
-      passwordHash: string;
-    }): Promise<User> {
+    async create(data: { email: string; name: string; passwordHash: string }): Promise<User> {
       return prisma.user.create({
         data: {
           email: data.email,

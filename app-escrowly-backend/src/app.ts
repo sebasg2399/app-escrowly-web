@@ -12,11 +12,42 @@ import { AuthService } from "./modules/auth/auth.service.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { UsersService } from "./modules/users/users.service.js";
 import { usersRoutes } from "./modules/users/users.routes.js";
+import { readFileSync, existsSync } from "node:fs";
+
+function readPackageVersion(): string {
+  const pkgPath = new URL("../../package.json", import.meta.url).pathname;
+  if (existsSync(pkgPath)) {
+    return JSON.parse(readFileSync(pkgPath, "utf-8")).version;
+  }
+  return "0.1.0";
+}
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
     logger: false, // we manage logging via loggerPlugin
   });
+
+  // OpenAPI spec generation
+  await app.register(import("@fastify/swagger"), {
+    openapi: {
+      info: {
+        title: "Escrowly API",
+        version: readPackageVersion(),
+      },
+      servers: [{ url: `http://localhost:${env.PORT}` }],
+      components: {
+        securitySchemes: {
+          bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+        },
+      },
+    },
+  });
+
+  if (env.NODE_ENV !== "production") {
+    await app.register(import("@fastify/swagger-ui"), {
+      routePrefix: "/docs",
+    });
+  }
 
   // Register plugins
   await app.register(loggerPlugin);
@@ -57,7 +88,24 @@ export async function buildApp(): Promise<FastifyInstance> {
   await usersRoutes(app, { usersService: new UsersService(userRepo) });
 
   // --- Health check ---
-  app.get("/health", async () => ({ status: "ok", timestamp: new Date().toISOString() }));
+  app.get(
+    "/health",
+    {
+      schema: {
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              status: { type: "string" },
+              timestamp: { type: "string", format: "date-time" },
+            },
+            required: ["status", "timestamp"],
+          },
+        },
+      },
+    },
+    async () => ({ status: "ok", timestamp: new Date().toISOString() }),
+  );
 
   return app;
 }

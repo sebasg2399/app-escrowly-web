@@ -10,7 +10,6 @@ process.env.COOKIE_NAME = "escrowly_refresh";
 
 import type { FastifyInstance } from "fastify";
 import { truncateTables } from "../../test/helpers.js";
-import { prisma } from "../../lib/prisma.js";
 
 let buildApp: () => Promise<FastifyInstance>;
 

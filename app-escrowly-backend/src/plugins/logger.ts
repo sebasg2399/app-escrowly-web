@@ -32,29 +32,30 @@ function createLogger() {
   return pino(opts);
 }
 
-export const loggerPlugin = fp(async (app: FastifyInstance) => {
-  const baseLogger = createLogger();
+export const loggerPlugin = fp(
+  async (app: FastifyInstance) => {
+    const baseLogger = createLogger();
 
-  // Attach a per-request correlation id
-  app.addHook("onRequest", async (req: FastifyRequest, _reply: FastifyReply) => {
-    const correlationId =
-      (req.headers["x-correlation-id"] as string) ??
-      req.headers["x-request-id"] ??
-      randomUUID();
+    // Attach a per-request correlation id
+    app.addHook("onRequest", async (req: FastifyRequest, _reply: FastifyReply) => {
+      const correlationId =
+        (req.headers["x-correlation-id"] as string) ?? req.headers["x-request-id"] ?? randomUUID();
 
-    req.id = correlationId;
-    req.log = baseLogger.child({ correlationId, reqId: correlationId });
-  });
+      req.id = correlationId;
+      req.log = baseLogger.child({ correlationId, reqId: correlationId });
+    });
 
-  app.addHook("onResponse", async (req: FastifyRequest, reply: FastifyReply) => {
-    req.log.info(
-      {
-        method: req.method,
-        url: req.url,
-        statusCode: reply.statusCode,
-        responseTime: reply.elapsedTime,
-      },
-      "request completed",
-    );
-  });
-}, { name: "logger-plugin" });
+    app.addHook("onResponse", async (req: FastifyRequest, reply: FastifyReply) => {
+      req.log.info(
+        {
+          method: req.method,
+          url: req.url,
+          statusCode: reply.statusCode,
+          responseTime: reply.elapsedTime,
+        },
+        "request completed",
+      );
+    });
+  },
+  { name: "logger-plugin" },
+);

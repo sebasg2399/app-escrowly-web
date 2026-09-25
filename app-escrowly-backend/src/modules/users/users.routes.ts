@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { UsersService } from "./users.service.js";
 import { updateProfileSchema } from "./users.schemas.js";
+import zodToJsonSchema from "zod-to-json-schema";
 
 export async function usersRoutes(
   app: FastifyInstance,
@@ -10,7 +11,29 @@ export async function usersRoutes(
 ) {
   app.get(
     "/users/me",
-    { preHandler: [(app as any).authenticate] },
+    {
+      preHandler: [(app as any).authenticate],
+      schema: {
+        security: [{ bearerAuth: [] }],
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid" },
+              email: { type: "string", format: "email" },
+              name: { type: "string" },
+              role: { type: "string", enum: ["client", "seller", "admin"] },
+              stripeCustomerId: { type: "string", nullable: true },
+              stripeAccountId: { type: "string", nullable: true },
+              subscriptionStatus: { type: "string", nullable: true },
+              createdAt: { type: "string", format: "date-time" },
+              updatedAt: { type: "string", format: "date-time" },
+            },
+            required: ["id", "email", "name", "role", "createdAt", "updatedAt"],
+          },
+        },
+      },
+    },
     async (request: FastifyRequest) => {
       const user = request.user as { sub: string };
       return opts.usersService.getProfile(user.sub);
@@ -19,7 +42,33 @@ export async function usersRoutes(
 
   app.patch(
     "/users/me",
-    { preHandler: [(app as any).authenticate] },
+    {
+      preHandler: [(app as any).authenticate],
+      schema: {
+        security: [{ bearerAuth: [] }],
+        body: {
+          ...zodToJsonSchema(updateProfileSchema.shape.body),
+          additionalProperties: true, // allow forbidden-field check to see raw body
+        },
+        response: {
+          200: {
+            type: "object",
+            properties: {
+              id: { type: "string", format: "uuid" },
+              email: { type: "string", format: "email" },
+              name: { type: "string" },
+              role: { type: "string", enum: ["client", "seller", "admin"] },
+              stripeCustomerId: { type: "string", nullable: true },
+              stripeAccountId: { type: "string", nullable: true },
+              subscriptionStatus: { type: "string", nullable: true },
+              createdAt: { type: "string", format: "date-time" },
+              updatedAt: { type: "string", format: "date-time" },
+            },
+            required: ["id", "email", "name", "role", "createdAt", "updatedAt"],
+          },
+        },
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const parsed = updateProfileSchema.safeParse(request);
       if (!parsed.success) {

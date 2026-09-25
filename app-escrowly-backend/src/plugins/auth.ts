@@ -8,10 +8,7 @@ export interface AuthPluginOptions {
 }
 
 // Decorator type for the authenticate function
-type AuthenticateFn = (
-  request: FastifyRequest,
-  reply: FastifyReply,
-) => Promise<void>;
+type AuthenticateFn = (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
 export const authPlugin = fp(
   async (app: FastifyInstance, opts: AuthPluginOptions) => {
@@ -19,10 +16,7 @@ export const authPlugin = fp(
       secret: opts.jwtSecret,
     });
 
-    const authenticate: AuthenticateFn = async (
-      request: FastifyRequest,
-      reply: FastifyReply,
-    ) => {
+    const authenticate: AuthenticateFn = async (request: FastifyRequest, _reply: FastifyReply) => {
       try {
         const decoded = await request.jwtVerify<{
           sub: string;
@@ -53,9 +47,7 @@ export const authPlugin = fp(
         }
       } catch (err: any) {
         if (err.code === "UNAUTHORIZED") throw err;
-        const authErr = new Error(
-          err.message || "Unauthorized",
-        ) as Error & {
+        const authErr = new Error(err.message || "Unauthorized") as Error & {
           statusCode: number;
           code: string;
         };
