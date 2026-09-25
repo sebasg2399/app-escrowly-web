@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect, type ReactNode } from "react";
-import { useNavigate } from "react-router";
 import { api, setAccessToken, clearSession, registerOnSessionExpired } from "../../lib/api/client";
 import { AuthContext } from "./auth-types";
 import type { AuthStatus, Profile } from "./auth-types";
@@ -7,18 +6,20 @@ import type { AuthStatus, Profile } from "./auth-types";
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [sessionExpiredMessage, setSessionExpiredMessage] = useState<string | null>(null);
 
-  // Session-expired callback: transition to guest and redirect to /login
-  const navigate = useNavigate();
-
+  // Session-expired callback: transition to guest and stash the message for
+  // the next /login render. Navigation is performed by AuthGuard (which is
+  // the only component that knows the original location.pathname) so the
+  // sessionExpiredMessage survives the redirect.
   useEffect(() => {
     registerOnSessionExpired((message: string) => {
       clearSession();
       setProfile(null);
       setStatus("guest");
-      navigate("/login", { state: { sessionExpiredMessage: message }, replace: true });
+      setSessionExpiredMessage(message);
     });
-  }, [navigate]);
+  }, []);
 
   const restore = useCallback(async () => {
     try {
@@ -27,6 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const me = await api.get<Profile>("/users/me");
       setProfile(me);
       setStatus("authed");
+      setSessionExpiredMessage(null);
     } catch {
       clearSession();
       setStatus("guest");
@@ -39,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const me = await api.get<Profile>("/users/me");
     setProfile(me);
     setStatus("authed");
+    setSessionExpiredMessage(null);
   }, []);
 
   const login = useCallback(async (data: { email: string; password: string }) => {
@@ -47,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const me = await api.get<Profile>("/users/me");
     setProfile(me);
     setStatus("authed");
+    setSessionExpiredMessage(null);
   }, []);
 
   const logout = useCallback(async () => {
@@ -61,7 +65,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ status, profile, register, login, logout, restore }}>
+    <AuthContext.Provider
+      value={{
+        status,
+        profile,
+        sessionExpiredMessage,
+        register,
+        login,
+        logout,
+        restore,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

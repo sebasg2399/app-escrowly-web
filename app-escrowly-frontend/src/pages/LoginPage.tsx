@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import LoginForm from "../features/auth/LoginForm";
 import { useAuth } from "../features/auth/useAuth";
@@ -20,10 +20,11 @@ function PostLoginRedirect() {
 }
 
 export default function LoginPage() {
-  const [sessionExpiredMessage] = useState<string | null>(() => {
-    const state = window.history.state?.usr as Record<string, unknown> | null;
-    return typeof state?.sessionExpiredMessage === "string" ? state.sessionExpiredMessage : null;
-  });
+  const location = useLocation();
+  // Read the session-expired message from react-router's location state.
+  // Using `window.history.state.usr` would break under memory router (tests).
+  const rawMessage = (location.state as Record<string, unknown> | null)?.sessionExpiredMessage;
+  const sessionExpiredMessage = typeof rawMessage === "string" ? rawMessage : null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

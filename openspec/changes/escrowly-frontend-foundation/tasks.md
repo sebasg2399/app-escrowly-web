@@ -69,3 +69,25 @@ Chain strategy: stacked-to-main
 - [x] 6.1 Run ESLint + Prettier; fix violations
 - [x] 6.2 `app-escrowly-frontend/README.md`: setup, env, proxy, scripts
 - [x] 6.3 Verify: `pnpm exec tsc --noEmit`, `pnpm test`, `pnpm build`
+
+## Phase 7: Verification gaps
+
+Test-only slice closing the behavioral-coverage gaps surfaced by `verify-report.md` (12 new tests; 2 production bugs fixed minimally).
+
+- [x] 7.1 Guard redirect-back (web-app-shell R2): guest → /app/profile → /login → after login lands on /app/profile (`router-behavior.test.tsx` > AuthGuard redirect-back)
+- [x] 7.2 Boot does not render protected content (web-app-shell R3): loader is up, no protected page content while status=loading (`router-behavior.test.tsx` > Boot loader)
+- [x] 7.3 Session-expired redirect + UI (web-app-shell R5, web-auth R7): protected 401 + refresh 401 → /login with "Your session expired…" banner (`router-behavior.test.tsx` > Session-expired redirect) — **fixed production bug**: `AuthGuard`'s `<Navigate>` was racing `AuthProvider`'s `navigate` and overwriting the state; refactored to thread `sessionExpiredMessage` through `AuthContext` and let `AuthGuard` own the navigation so the message survives.
+- [x] 7.4 Login/Register/Logout navigation (web-auth R1/R4/R5): login → /app, register → /app, logout → /login (`router-behavior.test.tsx` > Login navigation)
+- [x] 7.5 Register validation (web-auth R2): API `details` envelope → inline field errors, form values preserved (`router-behavior.test.tsx` > Register validation)
+- [x] 7.6 Duplicate email (web-auth R3): 409 → inline error on the **email** field only (`router-behavior.test.tsx` > Duplicate email)
+- [x] 7.7 Wrong credentials (web-auth R4): 401 → single non-field error, NOT session-expired (`router-behavior.test.tsx` > Wrong credentials)
+- [x] 7.8 Rate limited (web-auth R8): 429 → exact banner text + submit hidden (`router-behavior.test.tsx` > Rate limited)
+- [x] 7.9 Credentials included (web-api-client R3): every request (GET, PATCH, POST refresh) carries `credentials: "include"` (`client.test.ts` > credentials)
+- [x] 7.10 Profile R2/R4: role is not editable in the edit form, and after PATCH the view reflects the **refetched** persisted name (`router-behavior.test.tsx` > Profile R2/R4)
+- [x] 7.11 StrictMode single boot refresh (regression): exactly one `POST /auth/refresh` on boot under `<StrictMode>` (`router-behavior.test.tsx` > StrictMode single boot refresh)
+- [x] 7.12 CSS `@theme` spacing guard (regression): `src/styles/index.css` MUST NOT declare custom `--spacing-*` keys (the cause of the `max-w-md` = 24px layout bug) (`theme-guard.test.ts`)
+
+**Production bugs found and fixed (called out in PR):**
+
+1. **`LoginPage.tsx`** read `window.history.state?.usr?.sessionExpiredMessage`. Under memory router (and any router that does not sync to `window.history`) this is always `null` and the banner never renders. Fixed by reading from `useLocation().state` instead. Caught by 7.3.
+2. **`AuthGuard.tsx` + `auth-context.tsx`** — the session-expired callback in `AuthProvider` called `navigate("/login", { state: { sessionExpiredMessage } })`, then `AuthGuard` rendered `<Navigate to="/login" state={{ from: location }}>` on the next render; the second navigation overwrote the first, dropping the message. Refactored: `AuthProvider` now only updates `AuthContext.sessionExpiredMessage`; `AuthGuard` reads it and includes it in its own `Navigate` state. The message is cleared on every successful login/register/restore. Caught by 7.3.
