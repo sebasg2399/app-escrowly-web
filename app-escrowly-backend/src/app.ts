@@ -9,10 +9,16 @@ import { stripeWebhooksPlugin } from "./plugins/stripe-webhooks.js";
 import { prisma } from "./lib/prisma.js";
 import { createPrismaUserRepository } from "./adapters/prisma/user-repository.js";
 import { createPrismaSessionRepository } from "./adapters/prisma/session-repository.js";
+import { createPrismaContractRepository } from "./adapters/prisma/contract-repository.js";
+import { createPrismaMilestoneRepository } from "./adapters/prisma/milestone-repository.js";
 import { AuthService } from "./modules/auth/auth.service.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { UsersService } from "./modules/users/users.service.js";
 import { usersRoutes } from "./modules/users/users.routes.js";
+import { ContractsService } from "./modules/contracts/contracts.service.js";
+import { contractsRoutes } from "./modules/contracts/contracts.routes.js";
+import { MilestonesService } from "./modules/milestones/milestones.service.js";
+import { milestonesRoutes } from "./modules/milestones/milestones.routes.js";
 import { readFileSync, existsSync } from "node:fs";
 
 function readPackageVersion(): string {
@@ -58,6 +64,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   // Repositories
   const userRepo = createPrismaUserRepository(prisma);
   const sessionRepo = createPrismaSessionRepository(prisma);
+  const contractRepo = createPrismaContractRepository(prisma);
+  const milestoneRepo = createPrismaMilestoneRepository(prisma);
 
   // Registers @fastify/jwt (root scope) and the `authenticate` decorator
   await app.register(authPlugin, {
@@ -87,6 +95,14 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   // Users routes
   await usersRoutes(app, { usersService: new UsersService(userRepo) });
+
+  // Contracts + milestones routes
+  await contractsRoutes(app, {
+    contractsService: new ContractsService(userRepo, contractRepo, prisma),
+  });
+  await milestonesRoutes(app, {
+    milestonesService: new MilestonesService(contractRepo, milestoneRepo),
+  });
 
   // --- Health check ---
   app.get(
