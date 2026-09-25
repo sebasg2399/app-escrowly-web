@@ -76,9 +76,15 @@ async function request<T>(
   options?: RequestOptions,
   retried = false,
 ): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const headers: Record<string, string> = {};
+
+  // Only declare a JSON body when there actually is one. Sending
+  // Content-Type: application/json with an empty body makes Fastify's JSON
+  // parser throw (empty body) -> 500. Endpoints like /auth/refresh and
+  // /auth/logout are body-less POSTs.
+  if (options?.body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
 
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
