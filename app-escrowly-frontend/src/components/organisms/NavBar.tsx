@@ -5,6 +5,7 @@ export interface NavBarProps {
   role?: "client" | "seller" | "admin";
   userName?: string;
   onNavigateDashboard?: () => void;
+  onNavigateContracts?: () => void;
   onNavigateProfile?: () => void;
   onLogout?: () => void;
 }
@@ -13,6 +14,7 @@ export default function NavBar({
   role,
   userName,
   onNavigateDashboard,
+  onNavigateContracts,
   onNavigateProfile,
   onLogout,
 }: NavBarProps) {
@@ -48,8 +50,16 @@ export default function NavBar({
           <button
             onClick={onNavigateDashboard}
             className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+            data-testid="nav-dashboard"
           >
             Dashboard
+          </button>
+          <button
+            onClick={onNavigateContracts}
+            className="text-sm font-medium text-foreground hover:text-primary transition-colors"
+            data-testid="nav-contracts"
+          >
+            Contracts
           </button>
         </div>
 

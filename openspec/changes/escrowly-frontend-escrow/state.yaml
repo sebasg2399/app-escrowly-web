@@ -1,0 +1,14 @@
+change: escrowly-frontend-escrow
+title: "Escrowly Frontend Escrow Flow (contracts, milestones, funding, approval)"
+created: 2026-09-25
+artifact_store: openspec
+delivery_strategy: ask-on-risk
+current_phase: apply
+phases:
+  propose: completed
+  spec: completed
+  design: completed
+  tasks: completed
+  apply: in_progress
+  verify: pending
+  archive: pending

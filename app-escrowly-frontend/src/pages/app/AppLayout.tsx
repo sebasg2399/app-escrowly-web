@@ -16,6 +16,7 @@ export default function AppLayout() {
       userName={profile?.name}
       role={profile?.role}
       onNavigateDashboard={() => navigate("/app")}
+      onNavigateContracts={() => navigate("/app/contracts")}
       onNavigateProfile={() => navigate("/app/profile")}
       onLogout={handleLogout}
     >

@@ -13,6 +13,7 @@ export interface TextFieldProps {
   icon?: React.ReactNode;
   disabled?: boolean;
   required?: boolean;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
 }
