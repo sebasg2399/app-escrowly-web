@@ -5,6 +5,7 @@ import { errorHandlerPlugin } from "./plugins/error-handler.js";
 import { loggerPlugin } from "./plugins/logger.js";
 import { authPlugin } from "./plugins/auth.js";
 import { rateLimitPlugin } from "./plugins/rate-limit.js";
+import { stripeWebhooksPlugin } from "./plugins/stripe-webhooks.js";
 import { prisma } from "./lib/prisma.js";
 import { createPrismaUserRepository } from "./adapters/prisma/user-repository.js";
 import { createPrismaSessionRepository } from "./adapters/prisma/session-repository.js";
@@ -106,6 +107,10 @@ export async function buildApp(): Promise<FastifyInstance> {
     },
     async () => ({ status: "ok", timestamp: new Date().toISOString() }),
   );
+
+  // Stripe webhook receiver — encapsulated so its raw-body parser does
+  // not affect the global JSON parser used by other routes.
+  await app.register(stripeWebhooksPlugin);
 
   return app;
 }
