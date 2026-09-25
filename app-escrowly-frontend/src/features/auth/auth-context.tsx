@@ -1,5 +1,6 @@
-import { createContext, useState, useCallback, type ReactNode } from "react";
-import { api, setAccessToken, clearSession } from "../../lib/api/client";
+import { createContext, useState, useCallback, useEffect, type ReactNode } from "react";
+import { useNavigate } from "react-router";
+import { api, setAccessToken, clearSession, registerOnSessionExpired } from "../../lib/api/client";
 import type { paths } from "../../lib/api/types.generated";
 
 type Profile = paths["/users/me"]["get"]["responses"][200]["content"]["application/json"];
@@ -26,6 +27,18 @@ export { useAuth } from "./useAuth";
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [profile, setProfile] = useState<Profile | null>(null);
+
+  // Session-expired callback: transition to guest and redirect to /login
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    registerOnSessionExpired((message: string) => {
+      clearSession();
+      setProfile(null);
+      setStatus("guest");
+      navigate("/login", { state: { sessionExpiredMessage: message }, replace: true });
+    });
+  }, [navigate]);
 
   const restore = useCallback(async () => {
     try {
@@ -74,7 +87,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ status, profile, register, login, logout, restore }}>
+    <AuthContext.Provider
+      value={{ status, profile, register, login, logout, restore }}
+    >
       {children}
     </AuthContext.Provider>
   );

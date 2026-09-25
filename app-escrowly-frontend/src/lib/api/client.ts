@@ -1,9 +1,10 @@
-import { toApiError, networkError, ApiError } from "./errors";
+import { toApiError, networkError } from "./errors";
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? "";
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<void> | null = null;
+let onSessionExpired: ((message: string) => void) | null = null;
 
 // A 401 from these endpoints must NOT trigger the silent-refresh interceptor
 // (e.g. a wrong-password login would otherwise surface as "session expired").
@@ -25,6 +26,10 @@ export function setAccessToken(token: string | null): void {
 export function clearSession(): void {
   accessToken = null;
   refreshPromise = null;
+}
+
+export function registerOnSessionExpired(cb: (message: string) => void): void {
+  onSessionExpired = cb;
 }
 
 function buildUrl(path: string): string {
@@ -101,11 +106,12 @@ async function request<T>(
       await refreshOnce();
     } catch (err) {
       if (err instanceof Error && err.message === "SESSION_EXPIRED") {
-        const sessionError = new Error("SESSION_EXPIRED") as ApiError & Error;
-        (sessionError as unknown as { code: string }).code = "SESSION_EXPIRED";
-        (sessionError as unknown as { message: string }).message =
-          "Your session expired. Please sign in again.";
-        throw sessionError;
+        const msg = "Your session expired. Please sign in again.";
+        onSessionExpired?.(msg);
+        const sessionErr = new Error(msg) as Error & { code: string; status: number };
+        sessionErr.code = "SESSION_EXPIRED";
+        sessionErr.status = 401;
+        throw sessionErr;
       }
       throw err;
     }

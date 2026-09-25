@@ -2,6 +2,15 @@ import { http, HttpResponse } from "msw";
 
 const VALID_TOKEN = "test-access-token";
 
+const profileData = {
+  id: "550e8400-e29b-41d4-a716-446655440000",
+  email: "user@example.com",
+  name: "Test User",
+  role: "client" as const,
+  createdAt: "2024-01-01T00:00:00.000Z",
+  updatedAt: "2024-01-01T00:00:00.000Z",
+};
+
 export const handlers = [
   http.get("/health", () => {
     return new Response(JSON.stringify({ status: "ok", timestamp: new Date().toISOString() }), {
@@ -47,13 +56,31 @@ export const handlers = [
         { status: 401 },
       );
     }
-    return HttpResponse.json({
-      id: "550e8400-e29b-41d4-a716-446655440000",
-      email: "user@example.com",
-      name: "Test User",
-      role: "client",
-      createdAt: "2024-01-01T00:00:00.000Z",
-      updatedAt: "2024-01-01T00:00:00.000Z",
-    });
+    return HttpResponse.json(profileData);
+  }),
+
+  http.patch("/users/me", async ({ request }) => {
+    const auth = request.headers.get("Authorization");
+    if (!auth) {
+      return HttpResponse.json(
+        { code: "UNAUTHORIZED", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
+    const body = await request.json() as Record<string, string>;
+    if (!body.name || body.name.length === 0) {
+      return HttpResponse.json(
+        { code: "VALIDATION_ERROR", message: "Validation failed", details: { name: ["Name is required"] } },
+        { status: 400 },
+      );
+    }
+    if (body.name.length > 100) {
+      return HttpResponse.json(
+        { code: "VALIDATION_ERROR", message: "Validation failed", details: { name: ["Name is too long"] } },
+        { status: 400 },
+      );
+    }
+    profileData.name = body.name;
+    return HttpResponse.json({ ...profileData, updatedAt: new Date().toISOString() });
   }),
 ];
