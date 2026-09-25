@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { AuthService } from "./auth.service.js";
 import { registerSchema, loginSchema } from "./auth.schemas.js";
 import type { Env } from "../../config/env.js";
+import zodToJsonSchema from "zod-to-json-schema";
 
 export async function authRoutes(
   app: FastifyInstance,
@@ -20,6 +21,18 @@ export async function authRoutes(
 
   app.post(
     "/auth/register",
+    {
+      schema: {
+        body: zodToJsonSchema(registerSchema.shape.body),
+        response: {
+          201: {
+            type: "object",
+            properties: { accessToken: { type: "string" } },
+            required: ["accessToken"],
+          },
+        },
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const parsed = registerSchema.safeParse(request);
       if (!parsed.success) {
@@ -40,9 +53,7 @@ export async function authRoutes(
         throw err;
       }
 
-      const { accessToken, cookieValue } = await opts.authService.register(
-        parsed.data.body,
-      );
+      const { accessToken, cookieValue } = await opts.authService.register(parsed.data.body);
       reply.setCookie(opts.env.COOKIE_NAME, cookieValue, cookieOptions);
       reply.code(201);
       return { accessToken };
@@ -51,6 +62,18 @@ export async function authRoutes(
 
   app.post(
     "/auth/login",
+    {
+      schema: {
+        body: zodToJsonSchema(loginSchema.shape.body),
+        response: {
+          200: {
+            type: "object",
+            properties: { accessToken: { type: "string" } },
+            required: ["accessToken"],
+          },
+        },
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const parsed = loginSchema.safeParse(request);
       if (!parsed.success) {
@@ -71,9 +94,7 @@ export async function authRoutes(
         throw err;
       }
 
-      const { accessToken, cookieValue } = await opts.authService.login(
-        parsed.data.body,
-      );
+      const { accessToken, cookieValue } = await opts.authService.login(parsed.data.body);
       reply.setCookie(opts.env.COOKIE_NAME, cookieValue, cookieOptions);
       return { accessToken };
     },
@@ -81,12 +102,18 @@ export async function authRoutes(
 
   app.post(
     "/auth/logout",
-    { preHandler: [(app as any).authenticate] },
+    {
+      preHandler: [(app as any).authenticate],
+      schema: {
+        security: [{ bearerAuth: [] }],
+        response: {
+          204: { type: "null", description: "No content" },
+        },
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const user = (request as any).user as { jti: string };
-      const session = await opts.authService.findSessionByAccessJti(
-        user.jti,
-      );
+      const session = await opts.authService.findSessionByAccessJti(user.jti);
       if (session) {
         await opts.authService.logout(session.id);
       }
@@ -97,10 +124,19 @@ export async function authRoutes(
 
   app.post(
     "/auth/refresh",
+    {
+      schema: {
+        response: {
+          200: {
+            type: "object",
+            properties: { accessToken: { type: "string" } },
+            required: ["accessToken"],
+          },
+        },
+      },
+    },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const cookies = (request as any).cookies as
-        | Record<string, string>
-        | undefined;
+      const cookies = (request as any).cookies as Record<string, string> | undefined;
       const cookie = cookies?.[opts.env.COOKIE_NAME];
       if (!cookie) {
         const err = new Error("Missing refresh token") as Error & {
@@ -112,8 +148,7 @@ export async function authRoutes(
         throw err;
       }
 
-      const { accessToken, cookieValue } =
-        await opts.authService.refresh(cookie);
+      const { accessToken, cookieValue } = await opts.authService.refresh(cookie);
       reply.setCookie(opts.env.COOKIE_NAME, cookieValue, cookieOptions);
       return { accessToken };
     },

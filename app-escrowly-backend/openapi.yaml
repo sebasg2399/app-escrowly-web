@@ -1,0 +1,232 @@
+openapi: 3.0.3
+info:
+  title: Escrowly API
+  version: 0.1.0
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas: {}
+paths:
+  /auth/register:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                  allOf:
+                    - pattern: "[A-Z]"
+                    - pattern: "[a-z]"
+                    - pattern: "[0-9]"
+              required:
+                - name
+                - email
+                - password
+              additionalProperties: false
+      responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                required:
+                  - accessToken
+  /auth/login:
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+              additionalProperties: false
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                required:
+                  - accessToken
+  /auth/logout:
+    post:
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          description: No content
+  /auth/refresh:
+    post:
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                required:
+                  - accessToken
+  /users/me:
+    get:
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  email:
+                    type: string
+                    format: email
+                  name:
+                    type: string
+                  role:
+                    type: string
+                    enum:
+                      - client
+                      - seller
+                      - admin
+                  stripeCustomerId:
+                    type: string
+                    nullable: true
+                  stripeAccountId:
+                    type: string
+                    nullable: true
+                  subscriptionStatus:
+                    type: string
+                    nullable: true
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                required:
+                  - id
+                  - email
+                  - name
+                  - role
+                  - createdAt
+                  - updatedAt
+    patch:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+              required:
+                - name
+              additionalProperties: true
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  email:
+                    type: string
+                    format: email
+                  name:
+                    type: string
+                  role:
+                    type: string
+                    enum:
+                      - client
+                      - seller
+                      - admin
+                  stripeCustomerId:
+                    type: string
+                    nullable: true
+                  stripeAccountId:
+                    type: string
+                    nullable: true
+                  subscriptionStatus:
+                    type: string
+                    nullable: true
+                  createdAt:
+                    type: string
+                    format: date-time
+                  updatedAt:
+                    type: string
+                    format: date-time
+                required:
+                  - id
+                  - email
+                  - name
+                  - role
+                  - createdAt
+                  - updatedAt
+  /health:
+    get:
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  timestamp:
+                    type: string
+                    format: date-time
+                required:
+                  - status
+                  - timestamp
+servers:
+  - url: http://localhost:3000

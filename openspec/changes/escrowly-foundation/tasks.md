@@ -46,8 +46,8 @@ Chain strategy: stacked-to-main
 
 ## Phase 3: Integration / Wiring
 
-- [~] 3.1 Register plugins + modules in `buildApp()` (logger, error-handler, rate-limit, auth, routes) — auth + users wired; swagger pending
-- [ ] 3.2 Wire `@fastify/swagger` from route zod schemas; add `pnpm openapi` dumping `openapi.yaml`
+- [x] 3.1 Register plugins + modules in `buildApp()` (logger, error-handler, rate-limit, auth, routes) — auth + users wired; swagger pending
+- [x] 3.2 Wire `@fastify/swagger` from route zod schemas; add `pnpm openapi` dumping `openapi.yaml`
 
 ## Phase 4: Testing
 
@@ -59,9 +59,9 @@ Chain strategy: stacked-to-main
 - [x] 4.6 `/users/me`: no `passwordHash`; PATCH field persists; role/email-escalation rejected
 - [x] 4.7 Expired/malformed token → 401; unauthenticated route → 401 envelope; unknown route → 404
 - [x] 4.8 Excessive auth attempts → 429
-- [ ] 4.9 Verify `openapi.yaml` describes health, auth, users routes
+- [x] 4.9 Verify `openapi.yaml` describes health, auth, users routes
 
 ## Phase 5: Cleanup
 
-- [ ] 5.1 Run ESLint + Prettier; fix findings
-- [ ] 5.2 Add README (`pnpm dev`/`test`/`openapi`); confirm no password/token in logs
+- [x] 5.1 Run ESLint + Prettier; fix findings
+- [x] 5.2 Add README (`pnpm dev`/`test`/`openapi`); confirm no password/token in logs
