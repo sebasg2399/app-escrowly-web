@@ -37,6 +37,11 @@ export interface Milestone {
   /** Integer cents — never floats. */
   amount: number;
   status: "pending" | "funded" | "in_review" | "disputed" | "approved" | "paid";
+  stripePaymentIntentId?: string | null;
+  stripeTransferId?: string | null;
+  paidAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Contract {
@@ -61,12 +66,16 @@ const seedContracts: Contract[] = [
         title: "Initial mockups",
         amount: 25000,
         status: "pending",
+        createdAt: "2024-02-01T00:00:00.000Z",
+        updatedAt: "2024-02-01T00:00:00.000Z",
       },
       {
         id: "22222222-2222-4222-8222-222222222202",
         title: "Final deliverables",
         amount: 75000,
         status: "pending",
+        createdAt: "2024-02-01T00:00:00.000Z",
+        updatedAt: "2024-02-01T00:00:00.000Z",
       },
     ],
     createdAt: "2024-02-01T00:00:00.000Z",
@@ -74,12 +83,38 @@ const seedContracts: Contract[] = [
   },
 ];
 
-// In-memory store mutated by POST /contracts. Tests can call `__resetContracts`
-// via `server.use(...)` to substitute a fresh array.
+// In-memory store mutated by POST /contracts and the milestone mutation
+// handlers. Tests can call `__resetContracts` via `server.use(...)` to
+// substitute a fresh array.
 let contracts: Contract[] = seedContracts.slice();
 
 export function __resetContracts(next?: Contract[]) {
   contracts = next ? next.slice() : seedContracts.slice();
+}
+
+/**
+ * Counters / flags for tests to drive the polling behavior on
+ * `GET /contracts/:id` without having to override the entire handler.
+ *
+ *   `__flipPendingOnNextFetch()` — the next GET /contracts/:id response
+ *   will mutate any `pending` milestone to `funded` BEFORE serializing. This
+ *   simulates the webhook-driven `pending → funded` transition arriving
+ *   between two polls so the test can verify polling stops.
+ */
+let flipPendingOnNextFetch = false;
+export function __flipPendingOnNextFetch() {
+  flipPendingOnNextFetch = true;
+}
+
+function flipPendingMilestones(store: Contract[]) {
+  for (const contract of store) {
+    for (const m of contract.milestones) {
+      if (m.status === "pending") {
+        m.status = "funded";
+        m.updatedAt = new Date().toISOString();
+      }
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -224,6 +259,8 @@ export const handlers = [
         title: m.title,
         amount: m.amount,
         status: "pending",
+        createdAt: now,
+        updatedAt: now,
       })),
       createdAt: now,
       updatedAt: now,
@@ -248,6 +285,101 @@ export const handlers = [
         { status: 404 },
       );
     }
+    // Honor the polling-test flag: flip `pending → funded` on the next GET so
+    // the second poll observes the post-webhook state.
+    if (flipPendingOnNextFetch) {
+      flipPendingOnNextFetch = false;
+      flipPendingMilestones(contracts);
+    }
     return HttpResponse.json(found);
+  }),
+
+  // ----- /contracts/:id/milestones/:mid/{submit,approve} --------------------
+  //
+  // Mirrors the milestone state machine from openspec/specs/milestones:
+  //
+  //   funded     → in_review    (seller submit, POST /submit)
+  //   in_review  → approved     (client approve, POST /approve — also retries
+  //                              a failed payout when milestone is `approved`)
+  //   any other  → 409 INVALID_TRANSITION
+  //
+  // The handlers mutate the in-memory store so subsequent GETs reflect the
+  // transition (mirroring how the real backend updates the row atomically).
+  //
+  // Tests can override these handlers via `server.use(...)` to inject 403,
+  // 502, or other failure paths.
+
+  http.post("/contracts/:id/milestones/:mid/submit", async ({ request, params }) => {
+    const auth = request.headers.get("Authorization");
+    if (!auth) {
+      return HttpResponse.json(
+        { code: "UNAUTHORIZED", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
+    const id = params.id as string;
+    const mid = params.mid as string;
+    const contract = contracts.find((c) => c.id === id);
+    const milestone = contract?.milestones.find((m) => m.id === mid);
+    if (!contract || !milestone) {
+      return HttpResponse.json(
+        { code: "NOT_FOUND", message: "Milestone not found" },
+        { status: 404 },
+      );
+    }
+    // Note: the handler does NOT check the caller's role — that's enforced
+    // server-side using the JWT subject. For the "wrong role" test we
+    // rely on `server.use(...)` to override the handler and force a 403.
+    if (milestone.status !== "funded") {
+      return HttpResponse.json(
+        {
+          code: "INVALID_TRANSITION",
+          message: `Cannot submit a milestone in status "${milestone.status}"`,
+        },
+        { status: 409 },
+      );
+    }
+    milestone.status = "in_review";
+    milestone.updatedAt = new Date().toISOString();
+    contract.updatedAt = milestone.updatedAt;
+    return HttpResponse.json(milestone);
+  }),
+
+  http.post("/contracts/:id/milestones/:mid/approve", async ({ request, params }) => {
+    const auth = request.headers.get("Authorization");
+    if (!auth) {
+      return HttpResponse.json(
+        { code: "UNAUTHORIZED", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
+    const id = params.id as string;
+    const mid = params.mid as string;
+    const contract = contracts.find((c) => c.id === id);
+    const milestone = contract?.milestones.find((m) => m.id === mid);
+    if (!contract || !milestone) {
+      return HttpResponse.json(
+        { code: "NOT_FOUND", message: "Milestone not found" },
+        { status: 404 },
+      );
+    }
+    // The approve endpoint accepts `in_review` (first-time approval) AND
+    // `approved` (retrying a failed payout). Any other status is a 409.
+    if (milestone.status !== "in_review" && milestone.status !== "approved") {
+      return HttpResponse.json(
+        {
+          code: "INVALID_TRANSITION",
+          message: `Cannot approve a milestone in status "${milestone.status}"`,
+        },
+        { status: 409 },
+      );
+    }
+    // Simulate success: the milestone settles as `paid`.
+    milestone.status = "paid";
+    milestone.paidAt = new Date().toISOString();
+    milestone.stripeTransferId = `tr_test_${milestone.id.slice(0, 8)}`;
+    milestone.updatedAt = milestone.paidAt;
+    contract.updatedAt = milestone.updatedAt;
+    return HttpResponse.json(milestone);
   }),
 ];

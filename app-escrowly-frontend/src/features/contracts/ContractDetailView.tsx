@@ -1,6 +1,15 @@
+import { useState } from "react";
 import Badge from "../../components/atoms/Badge";
 import Button from "../../components/atoms/Button";
 import Banner from "../../components/molecules/Banner";
+import MilestoneRow from "../milestones/MilestoneRow";
+import {
+  bannerMessageFor,
+  useApproveMilestone,
+  useSubmitMilestone,
+  type MilestoneAction,
+  MilestoneMutationError,
+} from "../milestones";
 import { formatCents, sumCents } from "../../lib/money";
 import type { Contract, ViewerRole } from "./contracts-types";
 
@@ -95,39 +104,99 @@ export default function ContractDetailView({
 
       <section className="rounded-xl border border-neutral-200 bg-surface p-6 space-y-4">
         <h2 className="text-base font-semibold text-foreground">Milestones</h2>
-        <ul className="divide-y divide-neutral-100">
-          {contract.milestones.map((milestone, index) => (
-            <li
-              key={milestone.id}
-              className="flex items-center justify-between gap-4 py-3"
-              data-testid={`detail-milestone-row-${index}`}
-            >
-              <div className="flex items-center gap-4 min-w-0 flex-1">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-neutral-100 text-xs font-semibold text-neutral-700">
-                  {index + 1}
-                </span>
-                <p className="text-sm font-medium text-foreground truncate">{milestone.title}</p>
-              </div>
-              <div className="flex items-center gap-4">
-                <span
-                  className="text-sm font-semibold text-foreground tabular-nums"
-                  data-testid={`detail-milestone-amount-${index}`}
-                >
-                  {formatCents(milestone.amount)}
-                </span>
-                <Badge
-                  variant={milestone.status}
-                  className="capitalize"
-                  data-testid={`detail-milestone-status-${index}`}
-                >
-                  {milestone.status.replace("_", " ")}
-                </Badge>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <MilestonesList contract={contract} viewerRole={viewerRole} />
       </section>
     </div>
+  );
+}
+
+interface MilestonesListProps {
+  contract: Contract;
+  viewerRole: ViewerRole;
+}
+
+/**
+ * Renders the milestone rows with role/status-gated action buttons, plus a
+ * non-blocking error banner that surfaces 409/403 transitions without changing
+ * the milestone's status. Rows are unchanged after a failed mutation.
+ */
+function MilestonesList({ contract, viewerRole }: MilestonesListProps) {
+  const [banner, setBanner] = useState<string | null>(null);
+
+  return (
+    <>
+      {banner && (
+        <Banner
+          variant="error"
+          data-testid="milestone-action-banner"
+          onClick={() => setBanner(null)}
+        >
+          {banner}
+        </Banner>
+      )}
+      <ul className="divide-y divide-neutral-100">
+        {contract.milestones.map((milestone, index) => (
+          <MilestoneRowWithMutation
+            key={milestone.id}
+            contractId={contract.id}
+            index={index}
+            milestone={milestone}
+            viewerRole={viewerRole}
+            onBanner={setBanner}
+          />
+        ))}
+      </ul>
+    </>
+  );
+}
+
+interface MilestoneRowWithMutationProps {
+  contractId: string;
+  index: number;
+  milestone: Contract["milestones"][number];
+  viewerRole: ViewerRole;
+  onBanner: (message: string) => void;
+}
+
+/**
+ * Wires a single MilestoneRow to the submit/approve mutations. Each row tracks
+ * its own pending state via the mutation's `isPending`. Errors are mapped to
+ * non-blocking banner copy; the row's status does not change.
+ */
+function MilestoneRowWithMutation({
+  contractId,
+  index,
+  milestone,
+  viewerRole,
+  onBanner,
+}: MilestoneRowWithMutationProps) {
+  const submit = useSubmitMilestone(contractId, milestone.id);
+  const approve = useApproveMilestone(contractId, milestone.id);
+
+  const handleAction = (action: MilestoneAction) => {
+    if (action.kind === "none" || action.kind === "paid" || action.kind === "fund") return;
+
+    const verb = action.kind === "submit" ? "submit" : "approve";
+    const mutation = action.kind === "submit" ? submit : approve;
+
+    mutation.mutate(undefined, {
+      onError: (err) => {
+        const code = err instanceof MilestoneMutationError ? err.code : ("UNKNOWN" as const);
+        onBanner(bannerMessageFor(code, verb));
+      },
+    });
+  };
+
+  const actionPending = submit.isPending || approve.isPending;
+
+  return (
+    <MilestoneRow
+      index={index}
+      milestone={milestone}
+      viewerRole={viewerRole}
+      onAction={handleAction}
+      actionPending={actionPending}
+    />
   );
 }
 
