@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Stripe Connect Onboarding",
+    "quality_profile": "showcase",
+    "viewBox": [980, 980],
+    "views": [
+      { "id": "create-link", "label": "1. Create onboarding link", "focus": ["user", "frontend", "backend", "stripe"], "note": "Backend creates an Express account on first call, then mints a single-use account link." },
+      { "id": "hosted-form", "label": "2. Hosted onboarding", "focus": ["user", "stripe", "frontend"], "note": "Seller completes KYC on Stripe-hosted UI; Stripe redirects back." },
+      { "id": "sync-status", "label": "3. Sync flags back to backend", "focus": ["frontend", "backend", "stripe", "db"], "note": "GET /connect/status reconciles payouts_enabled / details_submitted from Stripe into our DB." }
+    ]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "Seller", "sublabel": "browser" },
+    { "id": "frontend", "type": "frontend", "label": "Frontend", "sublabel": "React + Vite" },
+    { "id": "backend", "type": "backend", "label": "Backend API", "sublabel": "Fastify" },
+    { "id": "db", "type": "database", "label": "Postgres", "sublabel": "Prisma" },
+    { "id": "stripe", "type": "cloud", "label": "Stripe", "sublabel": "Connect Express" }
+  ],
+  "segments": [
+    { "from": 150, "to": 380, "label": "1. Onboarding link" },
+    { "from": 395, "to": 580, "label": "2. Hosted onboarding" },
+    { "from": 595, "to": 935, "label": "3. Sync status" }
+  ],
+  "messages": [
+    { "from": "user", "to": "frontend", "y": 180, "label": "click Connect Stripe" },
+    { "from": "frontend", "to": "backend", "y": 222, "label": "POST /connect/onboarding-link" },
+    { "from": "backend", "to": "db", "y": 264, "label": "findById(userId)", "variant": "emphasis" },
+    { "from": "backend", "to": "stripe", "y": 306, "label": "createExpressAccount (country=US)", "variant": "dashed" },
+    { "from": "backend", "to": "db", "y": 348, "label": "setStripeAccountId", "variant": "dashed" },
+    { "from": "backend", "to": "stripe", "y": 390, "label": "createAccountLink { refresh, return }" },
+    { "from": "stripe", "to": "backend", "y": 432, "label": "url", "variant": "return" },
+    { "from": "backend", "to": "frontend", "y": 474, "label": "200 { url }", "variant": "return" },
+    { "from": "frontend", "to": "user", "y": 510, "label": "window.location = url", "variant": "default" },
+    { "from": "user", "to": "stripe", "y": 555, "label": "fill KYC form", "variant": "emphasis" },
+    { "from": "stripe", "to": "user", "y": 600, "label": "redirect → return_url", "variant": "return" },
+    { "from": "user", "to": "frontend", "y": 645, "label": "land on /connect", "variant": "default" },
+    { "from": "frontend", "to": "backend", "y": 690, "label": "GET /connect/status" },
+    { "from": "backend", "to": "stripe", "y": 735, "label": "retrieveAccount(acct_…)", "variant": "emphasis" },
+    { "from": "stripe", "to": "backend", "y": 780, "label": "payouts_enabled + details_submitted", "variant": "return" },
+    { "from": "backend", "to": "db", "y": 825, "label": "update flags if changed", "variant": "emphasis" },
+    { "from": "backend", "to": "frontend", "y": 870, "label": "200 onboardingComplete", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "frontend", "from": 174, "to": 486, "type": "frontend" },
+    { "participant": "backend", "from": 216, "to": 486, "type": "backend" },
+    { "participant": "db", "from": 258, "to": 360, "type": "database" },
+    { "participant": "stripe", "from": 300, "to": 444, "type": "cloud" },
+    { "participant": "user", "from": 504, "to": 666, "type": "external" },
+    { "participant": "stripe", "from": 549, "to": 612, "type": "cloud" },
+    { "participant": "frontend", "from": 639, "to": 882, "type": "frontend" },
+    { "participant": "backend", "from": 684, "to": 882, "type": "backend" },
+    { "participant": "stripe", "from": 729, "to": 792, "type": "cloud" },
+    { "participant": "db", "from": 819, "to": 837, "type": "database" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Account reuse", "items": ["First call creates the Express account; later calls reuse stripeAccountId", "AccountLink is single-use and short-lived — created on demand per visit"] },
+    { "dot": "emerald", "title": "Hosted KYC", "items": ["Sensitive data (SSN, bank, IDs) lives only on Stripe", "Refresh/return URLs let the seller pause and resume", "Stripe sends the seller back to the SPA on completion"] },
+    { "dot": "orange", "title": "Status is reconciled, not assumed", "items": ["GET /connect/status pulls the truth from Stripe on every call", "payouts_enabled + details_submitted are mirrored into our DB", "Onboarding is only complete when BOTH flags are true"] }
+  ]
+}

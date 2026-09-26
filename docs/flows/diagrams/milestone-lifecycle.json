@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Escrowly Milestone Lifecycle",
+    "quality_profile": "showcase",
+    "viewBox": [960, 640],
+    "views": [
+      { "id": "happy-path", "label": "Happy path", "focus": ["pending", "funded", "in_review", "approved", "paid", "contract_completed"], "note": "Five ordered phases from creation to contract completion." },
+      { "id": "recoverable-error", "label": "Recoverable error", "focus": ["approved", "transfer_failed", "paid"], "note": "When the Stripe Transfer fails the milestone stays approved and is retried." }
+    ]
+  },
+  "lanes": [
+    { "id": "main", "label": "Milestone lifecycle" },
+    { "id": "exceptions", "label": "Recovery loop" },
+    { "id": "terminal", "label": "Contract exit" }
+  ],
+  "states": [
+    { "id": "pending", "type": "start", "label": "Pending", "sublabel": "milestone created", "lane": "main", "col": 0, "step": "01", "tag": "entry" },
+    { "id": "funded", "type": "active", "label": "Funded", "sublabel": "PaymentIntent succeeded", "lane": "main", "col": 1, "step": "02", "tag": "money in escrow" },
+    { "id": "in_review", "type": "active", "label": "In review", "sublabel": "seller submitted", "lane": "main", "col": 2, "step": "03", "tag": "awaiting client" },
+    { "id": "approved", "type": "decision", "label": "Approved", "sublabel": "client accepted", "lane": "main", "col": 3, "step": "04", "tag": "ready to pay" },
+    { "id": "paid", "type": "success", "label": "Paid", "sublabel": "Transfer settled", "lane": "main", "col": 4, "step": "05", "tag": "seller gets 90%" },
+    { "id": "transfer_failed", "type": "failure", "label": "Transfer failed", "sublabel": "Stripe 502", "lane": "exceptions", "col": 1, "yOffset": 78, "tag": "retryable" },
+    { "id": "contract_completed", "type": "success", "label": "Contract done", "sublabel": "all milestones paid", "lane": "terminal", "col": 2, "tag": "exit" }
+  ],
+  "transitions": [
+    { "id": "fund-succeeded", "from": "pending", "to": "funded", "variant": "default", "label": "webhook", "labelAt": [155, 218] },
+    { "id": "seller-submits", "from": "funded", "to": "in_review", "variant": "default", "label": "submit", "labelAt": [309, 218] },
+    { "id": "client-approves", "from": "in_review", "to": "approved", "variant": "default", "label": "approve", "labelAt": [463, 218] },
+    { "id": "approved-transfer-ok", "from": "approved", "to": "paid", "variant": "emphasis", "label": "Transfer OK", "labelAt": [617, 218] },
+    { "id": "approved-transfer-fail", "from": "approved", "to": "transfer_failed", "variant": "security", "fromSide": "bottom", "toSide": "top", "route": "straight" },
+    { "id": "transfer-failed-retry", "from": "transfer_failed", "to": "approved", "variant": "emphasis", "fromSide": "top", "toSide": "bottom", "route": "straight", "label": "retry", "labelDx": 60 },
+    { "id": "last-milestone-paid", "from": "paid", "to": "contract_completed", "variant": "default", "fromSide": "bottom", "toSide": "top", "route": "straight", "label": "all paid", "labelAt": [694, 218] }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Happy path (5 phases)",
+      "items": [
+        "Webhook payment_intent.succeeded is the only writer of pending → funded",
+        "approve() atomically advances in_review → approved, then runs the Transfer outside the DB tx"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Idempotent recovery",
+      "items": [
+        "Transfer failure leaves the milestone in approved; retry reuses the same Stripe idempotency key",
+        "Contract auto-completes only when every milestone is paid"
+      ]
+    }
+  ]
+}

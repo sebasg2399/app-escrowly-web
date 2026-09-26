@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Escrowly Happy Path — Fund, Submit, Approve, Pay",
+    "quality_profile": "showcase",
+    "viewBox": [1080, 1100],
+    "views": [
+      { "id": "funding", "label": "1. Funding", "focus": ["client", "frontend", "backend", "stripe", "db"], "note": "Client funds via PaymentIntent; webhook transitions pending → funded." },
+      { "id": "submit-and-approve", "label": "2. Submit + Approve", "focus": ["seller", "frontend", "backend", "db"], "note": "Seller submits; client approves; ledger and Transfer happen in one transaction." },
+      { "id": "payout", "label": "3. Payout", "focus": ["backend", "stripe", "db"], "note": "Stripe Transfer settles to seller; commission ledger is written." }
+    ]
+  },
+  "participants": [
+    { "id": "client", "type": "external", "label": "Client", "sublabel": "browser" },
+    { "id": "seller", "type": "external", "label": "Seller", "sublabel": "browser" },
+    { "id": "frontend", "type": "frontend", "label": "Frontend", "sublabel": "React + Vite" },
+    { "id": "backend", "type": "backend", "label": "Backend API", "sublabel": "Fastify" },
+    { "id": "db", "type": "database", "label": "Postgres", "sublabel": "Prisma" },
+    { "id": "stripe", "type": "cloud", "label": "Stripe", "sublabel": "Connect Express" }
+  ],
+  "segments": [
+    { "from": 150, "to": 540, "label": "1. Fund milestone" },
+    { "from": 555, "to": 705, "label": "2. Seller submits" },
+    { "from": 720, "to": 1040, "label": "3. Client approves + payout" }
+  ],
+  "messages": [
+    { "from": "client", "to": "frontend", "y": 180, "label": "click Fund", "variant": "emphasis" },
+    { "from": "frontend", "to": "backend", "y": 222, "label": "POST /contracts/:id/milestones/:mid/fund" },
+    { "from": "backend", "to": "stripe", "y": 264, "label": "createPaymentIntent (key=fund:MID)" },
+    { "from": "stripe", "to": "backend", "y": 306, "label": "clientSecret", "variant": "return" },
+    { "from": "backend", "to": "db", "y": 348, "label": "set stripe_payment_intent_id", "variant": "emphasis" },
+    { "from": "backend", "to": "frontend", "y": 390, "label": "200 { clientSecret }", "variant": "return" },
+    { "from": "frontend", "to": "stripe", "y": 432, "label": "Payment Element confirm" },
+    { "from": "stripe", "to": "frontend", "y": 474, "label": "succeeded", "variant": "return" },
+    { "from": "stripe", "to": "backend", "y": 516, "label": "webhook payment_intent.succeeded", "variant": "security" },
+    { "from": "seller", "to": "frontend", "y": 580, "label": "click Submit" },
+    { "from": "frontend", "to": "backend", "y": 622, "label": "POST .../submit" },
+    { "from": "backend", "to": "db", "y": 664, "label": "transition funded → in_review", "variant": "emphasis" },
+    { "from": "backend", "to": "frontend", "y": 706, "label": "200 milestone", "variant": "return" },
+    { "from": "client", "to": "frontend", "y": 745, "label": "click Approve" },
+    { "from": "frontend", "to": "backend", "y": 787, "label": "POST .../approve" },
+    { "from": "backend", "to": "db", "y": 829, "label": "transition in_review → approved", "variant": "emphasis" },
+    { "from": "backend", "to": "stripe", "y": 871, "label": "createTransfer (key=transfer:MID, 90%)" },
+    { "from": "backend", "to": "db", "y": 955, "label": "txn: approved → paid + commission + transfer ledger", "variant": "emphasis" },
+    { "from": "stripe", "to": "seller", "y": 1010, "label": "payout to connected account", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "frontend", "from": 174, "to": 486, "type": "frontend" },
+    { "participant": "backend", "from": 216, "to": 525, "type": "backend" },
+    { "participant": "stripe", "from": 258, "to": 525, "type": "cloud" },
+    { "participant": "db", "from": 342, "to": 360, "type": "database" },
+    { "participant": "seller", "from": 574, "to": 720, "type": "external" },
+    { "participant": "frontend", "from": 614, "to": 720, "type": "frontend" },
+    { "participant": "backend", "from": 656, "to": 980, "type": "backend" },
+    { "participant": "db", "from": 658, "to": 980, "type": "database" },
+    { "participant": "stripe", "from": 865, "to": 1020, "type": "cloud" },
+    { "participant": "client", "from": 739, "to": 804, "type": "external" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Funding path", "items": ["fund() creates PaymentIntent with idempotency key fund:MID", "Webhook is the only writer of pending → funded", "First funded milestone flips contract draft → active"] },
+    { "dot": "emerald", "title": "Approve is atomic + idempotent", "items": ["Single DB transaction covers status, ledger, contract completion", "Stripe Transfer uses idempotency key transfer:MID", "Stripe call sits OUTSIDE the DB transaction (Stripe is the chokepoint)"] },
+    { "dot": "orange", "title": "Money split", "items": ["10% platform commission → commission_credit ledger", "90% Transfer to seller's connected Stripe account", "Failure keeps milestone in approved for safe retry"] }
+  ]
+}

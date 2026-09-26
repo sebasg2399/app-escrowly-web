@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Escrowly Architecture",
+    "quality_profile": "showcase",
+    "viewBox": [1080, 540],
+    "views": [
+      { "id": "request-path", "label": "Request path", "focus": ["browser", "frontend", "backend", "db", "stripe"], "note": "Browser → SPA → Fastify → Prisma/Postgres or Stripe." },
+      { "id": "webhooks", "label": "Inbound webhooks", "focus": ["stripe", "backend", "db"], "note": "Stripe pushes payment_intent.* and transfer.* events into the Fastify webhook plugin." }
+    ]
+  },
+  "components": [
+    { "id": "browser", "type": "external", "label": "Browser", "sublabel": "Client or Seller", "pos": [40, 220], "size": [140, 64] },
+    { "id": "frontend", "type": "frontend", "label": "React + Vite SPA", "sublabel": "React Router + MSW", "pos": [240, 220], "size": [160, 64], "tag": "no business logic" },
+    { "id": "backend", "type": "backend", "label": "Fastify Backend", "sublabel": "TypeScript", "pos": [460, 220], "size": [160, 64], "tag": "ports / adapters" },
+    { "id": "db", "type": "database", "label": "Postgres", "sublabel": "Prisma", "pos": [880, 60], "size": [140, 64], "tag": "source of truth" },
+    { "id": "stripe", "type": "cloud", "label": "Stripe Connect", "sublabel": "Express", "pos": [880, 400], "size": [140, 64], "tag": "PaymentIntents + Transfers" }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Escrowly monorepo", "wraps": ["browser", "frontend", "backend", "db"], "pad": 18 },
+    { "kind": "security-group", "label": "Backend trust boundary", "wraps": ["backend", "db"], "pad": 14 }
+  ],
+  "connections": [
+    { "id": "browser-to-frontend", "from": "browser", "to": "frontend", "label": "HTTPS SPA", "variant": "emphasis" },
+    { "id": "frontend-to-backend", "from": "frontend", "to": "backend", "label": "REST + Bearer JWT", "variant": "emphasis", "labelAt": [430, 312] },
+    { "id": "backend-to-db", "from": "backend", "to": "db", "label": "Prisma", "labelAt": [780, 130] },
+    { "id": "backend-to-stripe", "from": "backend", "to": "stripe", "label": "PaymentIntent + Transfer", "labelAt": [780, 360] },
+    { "id": "stripe-webhook", "from": "stripe", "to": "backend", "label": "signed webhook", "variant": "security", "via": [[950, 432], [950, 510], [540, 510], [540, 284], [620, 284]], "labelAt": [740, 502] },
+    { "id": "browser-to-stripe", "from": "browser", "to": "stripe", "label": "Payment Element", "variant": "dashed", "fromSide": "bottom", "toSide": "bottom", "labelAt": [400, 488] }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Frontend", "items": ["React + Vite, MSW handlers in tests", "Auth guard + silent refresh; no business logic"] },
+    { "dot": "emerald", "title": "Backend", "items": ["Fastify + TypeScript, ports & adapters", "Modules: auth · users · contracts · milestones · connect · payments"] },
+    { "dot": "violet", "title": "Storage", "items": ["Postgres via Prisma: users, sessions, contracts, milestones, ledger, webhook dedupe"] },
+    { "dot": "orange", "title": "External", "items": ["Stripe Connect Express: PaymentIntents, Transfers, hosted onboarding"] }
+  ]
+}
