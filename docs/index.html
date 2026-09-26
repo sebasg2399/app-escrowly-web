@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Escrowly — Architecture &amp; Flow Diagrams</title>
+    <meta
+      name="description"
+      content="Interactive HTML diagrams documenting the Escrowly monorepo: architecture overview, milestone lifecycle, money flow, Stripe Connect onboarding, and auth."
+    />
+    <style>
+      :root {
+        --bg: #0b0f17;
+        --bg-card: #121826;
+        --bg-card-hover: #1a2233;
+        --border: #1f2937;
+        --text: #e6edf3;
+        --text-dim: #9aa6b2;
+        --accent: #5ea1ff;
+        --accent-hover: #7ab4ff;
+        --code-bg: #0d1320;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #ffffff;
+          --bg-card: #f6f8fa;
+          --bg-card-hover: #eef2f7;
+          --border: #d0d7de;
+          --text: #1f2328;
+          --text-dim: #59636e;
+          --accent: #0969da;
+          --accent-hover: #0550ae;
+          --code-bg: #f0f3f6;
+        }
+      }
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; }
+      body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter",
+          "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      main {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 64px 24px 96px;
+      }
+      header { margin-bottom: 48px; }
+      h1 {
+        font-size: 40px;
+        line-height: 1.15;
+        margin: 0 0 8px;
+        letter-spacing: -0.02em;
+      }
+      .lede {
+        color: var(--text-dim);
+        font-size: 17px;
+        margin: 0;
+        max-width: 720px;
+      }
+      h2 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-dim);
+        margin: 48px 0 16px;
+        font-weight: 600;
+      }
+      ul.diagrams {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        gap: 12px;
+      }
+      ul.diagrams li a {
+        display: block;
+        padding: 18px 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        text-decoration: none;
+        color: var(--text);
+        transition: background 120ms ease, transform 120ms ease;
+      }
+      ul.diagrams li a:hover {
+        background: var(--bg-card-hover);
+        transform: translateY(-1px);
+      }
+      ul.diagrams .row {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      ul.diagrams .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        background: var(--code-bg);
+        color: var(--text-dim);
+        border: 1px solid var(--border);
+      }
+      ul.diagrams .title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--accent);
+      }
+      ul.diagrams li a:hover .title { color: var(--accent-hover); }
+      ul.diagrams .desc {
+        margin-top: 6px;
+        color: var(--text-dim);
+        font-size: 14px;
+      }
+      footer {
+        margin-top: 64px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        color: var(--text-dim);
+        font-size: 13px;
+      }
+      footer code {
+        background: var(--code-bg);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      a { color: var(--accent); }
+      a:hover { color: var(--accent-hover); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Escrowly</h1>
+        <p class="lede">
+          Interactive diagrams documenting the architecture and core flows of the
+          Escrowly monorepo (Fastify + React + Prisma + Stripe Connect). Each
+          link opens a standalone viewer with theme switching, pan/zoom, search,
+          focus, presentation, and PNG/JPEG/SVG export.
+        </p>
+      </header>
+
+      <h2>Diagrams</h2>
+      <ul class="diagrams">
+        <li>
+          <a href="./flows/diagrams/architecture.html">
+            <div class="row">
+              <span class="badge">architecture</span>
+              <span class="title">Architecture overview</span>
+            </div>
+            <p class="desc">
+              Browser &rarr; React + Vite SPA &rarr; Fastify backend &rarr;
+              Postgres / Stripe Connect. Outbound PaymentIntents &amp; Transfers,
+              inbound signed webhooks.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./flows/diagrams/milestone-lifecycle.html">
+            <div class="row">
+              <span class="badge">lifecycle</span>
+              <span class="title">Milestone lifecycle</span>
+            </div>
+            <p class="desc">
+              Escrow state machine:
+              <code>pending &rarr; funded &rarr; in_review &rarr; approved &rarr; paid</code>,
+              plus the recoverable Stripe Transfer failure path and the contract
+              completion transition.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./flows/diagrams/happy-path-money-flow.html">
+            <div class="row">
+              <span class="badge">sequence</span>
+              <span class="title">Happy path — money flow</span>
+            </div>
+            <p class="desc">
+              Full roundtrip: client funds via PaymentIntent &rarr; webhook flips
+              <code>pending &rarr; funded</code> &rarr; seller submits &rarr;
+              client approves &rarr; Stripe Transfer pays the seller.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./flows/diagrams/connect-onboarding.html">
+            <div class="row">
+              <span class="badge">sequence</span>
+              <span class="title">Stripe Connect onboarding</span>
+            </div>
+            <p class="desc">
+              Backend mints an AccountLink &rarr; seller completes KYC on the
+              Stripe-hosted page &rarr; status reconciled back into our DB.
+            </p>
+          </a>
+        </li>
+        <li>
+          <a href="./flows/diagrams/auth-flow.html">
+            <div class="row">
+              <span class="badge">sequence</span>
+              <span class="title">Auth flow</span>
+            </div>
+            <p class="desc">
+              Register / login &rarr; JWT access token in memory + opaque
+              httpOnly refresh cookie &rarr; silent refresh with rotation
+              &rarr; server-side logout revocation.
+            </p>
+          </a>
+        </li>
+      </ul>
+
+      <footer>
+        Source specs live next to the HTML at
+        <code>docs/flows/diagrams/*.json</code>. See
+        <a href="https://github.com/sebasg2399/app-escrowly-web">github.com/sebasg2399/app-escrowly-web</a>
+        to regenerate or inspect the authoring.
+      </footer>
+    </main>
+  </body>
+</html>
