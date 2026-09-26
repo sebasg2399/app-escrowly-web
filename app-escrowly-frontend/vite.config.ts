@@ -14,6 +14,14 @@ export default defineConfig({
         target: "http://localhost:3000",
         changeOrigin: true,
       },
+      "/contracts": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
+      "/connect": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+      },
       "/health": {
         target: "http://localhost:3000",
         changeOrigin: true,

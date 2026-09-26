@@ -4,6 +4,9 @@ import RootRedirect from "./RootRedirect";
 import AuthGuard from "./AuthGuard";
 import HomePage from "../pages/app/HomePage";
 import ProfilePage from "../pages/app/ProfilePage";
+import ContractsListPage from "../pages/app/ContractsListPage";
+import ContractCreatePage from "../pages/app/ContractCreatePage";
+import ContractDetailPage from "../pages/app/ContractDetailPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -35,6 +38,14 @@ export const appRoutes: RouteObject[] = [
             children: [
               { index: true, element: <HomePage /> },
               { path: "profile", element: <ProfilePage /> },
+              {
+                path: "contracts",
+                children: [
+                  { index: true, element: <ContractsListPage /> },
+                  { path: "new", element: <ContractCreatePage /> },
+                  { path: ":id", element: <ContractDetailPage /> },
+                ],
+              },
             ],
           },
         ],
