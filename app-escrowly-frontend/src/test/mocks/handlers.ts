@@ -382,4 +382,52 @@ export const handlers = [
     contract.updatedAt = milestone.updatedAt;
     return HttpResponse.json(milestone);
   }),
+
+  // --- Fund a milestone (returns a Stripe clientSecret) ---
+  http.post("/contracts/:id/milestones/:mid/fund", ({ params }) => {
+    const id = params.id as string;
+    const mid = params.mid as string;
+    const contract = contracts.find((c) => c.id === id);
+    const milestone = contract?.milestones.find((m) => m.id === mid);
+    if (contract && milestone && milestone.status !== "pending") {
+      return HttpResponse.json(
+        {
+          code: "INVALID_TRANSITION",
+          message: `Cannot fund a milestone in status "${milestone.status}"`,
+        },
+        { status: 409 },
+      );
+    }
+    // Return the clientSecret even when no in-memory contract exists (the
+    // FundingModal test renders without populating `contracts`). The funding
+    // modal only needs the clientSecret to mount Stripe Elements.
+    const piId = `pi_test_${mid.slice(0, 8)}`;
+    return HttpResponse.json({
+      id: piId,
+      clientSecret: `pi_test_secret_${mid}`,
+    });
+  }),
+
+  // --- Connect onboarding ---
+  http.get("/connect/status", ({ request }) => {
+    const auth = request.headers.get("Authorization");
+    if (!auth) {
+      return HttpResponse.json(
+        { code: "UNAUTHORIZED", message: "Authentication required" },
+        { status: 401 },
+      );
+    }
+    return HttpResponse.json({
+      hasAccount: true,
+      detailsSubmitted: true,
+      payoutsEnabled: true,
+      onboardingComplete: true,
+    });
+  }),
+
+  http.post("/connect/onboarding-link", () =>
+    HttpResponse.json({
+      url: "https://connect.stripe.test/setup/test_onboarding",
+    }),
+  ),
 ];

@@ -10,6 +10,7 @@ import {
   type MilestoneAction,
   MilestoneMutationError,
 } from "../milestones";
+import FundingModal from "../../features/funding/FundingModal";
 import { formatCents, sumCents } from "../../lib/money";
 import type { Contract, ViewerRole } from "./contracts-types";
 
@@ -20,11 +21,11 @@ interface ContractDetailViewProps {
 }
 
 function formatCreatedDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-US", {
+  return new Intl.DateTimeFormat("en-US", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  });
+  }).format(new Date(iso));
 }
 
 function viewerRoleLabel(role: ViewerRole, contract: Contract): string {
@@ -119,9 +120,12 @@ interface MilestonesListProps {
  * Renders the milestone rows with role/status-gated action buttons, plus a
  * non-blocking error banner that surfaces 409/403 transitions without changing
  * the milestone's status. Rows are unchanged after a failed mutation.
+ * The funding modal is mounted at the list level so it persists across
+ * row-level re-renders.
  */
 function MilestonesList({ contract, viewerRole }: MilestonesListProps) {
   const [banner, setBanner] = useState<string | null>(null);
+  const [fundingMilestoneId, setFundingMilestoneId] = useState<string | null>(null);
 
   return (
     <>
@@ -143,9 +147,19 @@ function MilestonesList({ contract, viewerRole }: MilestonesListProps) {
             milestone={milestone}
             viewerRole={viewerRole}
             onBanner={setBanner}
+            onFund={(id) => setFundingMilestoneId(id)}
           />
         ))}
       </ul>
+      {fundingMilestoneId && (
+        <FundingModal
+          contractId={contract.id}
+          milestoneId={fundingMilestoneId}
+          amountCents={contract.milestones.find((m) => m.id === fundingMilestoneId)?.amount ?? 0}
+          onClose={() => setFundingMilestoneId(null)}
+          onSucceeded={() => setFundingMilestoneId(null)}
+        />
+      )}
     </>
   );
 }
@@ -156,12 +170,14 @@ interface MilestoneRowWithMutationProps {
   milestone: Contract["milestones"][number];
   viewerRole: ViewerRole;
   onBanner: (message: string) => void;
+  onFund: (milestoneId: string) => void;
 }
 
 /**
  * Wires a single MilestoneRow to the submit/approve mutations. Each row tracks
  * its own pending state via the mutation's `isPending`. Errors are mapped to
- * non-blocking banner copy; the row's status does not change.
+ * non-blocking banner copy; the row's status does not change. The Fund action
+ * opens the funding modal via `onFund`.
  */
 function MilestoneRowWithMutation({
   contractId,
@@ -169,12 +185,18 @@ function MilestoneRowWithMutation({
   milestone,
   viewerRole,
   onBanner,
+  onFund,
 }: MilestoneRowWithMutationProps) {
   const submit = useSubmitMilestone(contractId, milestone.id);
   const approve = useApproveMilestone(contractId, milestone.id);
 
   const handleAction = (action: MilestoneAction) => {
-    if (action.kind === "none" || action.kind === "paid" || action.kind === "fund") return;
+    if (action.kind === "none" || action.kind === "paid") return;
+
+    if (action.kind === "fund") {
+      onFund(milestone.id);
+      return;
+    }
 
     const verb = action.kind === "submit" ? "submit" : "approve";
     const mutation = action.kind === "submit" ? submit : approve;
@@ -196,6 +218,7 @@ function MilestoneRowWithMutation({
       viewerRole={viewerRole}
       onAction={handleAction}
       actionPending={actionPending}
+      enableFunding
     />
   );
 }
