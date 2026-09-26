@@ -1,0 +1,60 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Escrowly Auth — Register, Login, Refresh, Logout",
+    "quality_profile": "showcase",
+    "viewBox": [1080, 1020],
+    "column_fit": "spread",
+    "views": [
+      { "id": "register-or-login", "label": "1. Register / Login", "focus": ["user", "frontend", "backend", "db"], "note": "Argon2id hash + JWT access + opaque refresh cookie." },
+      { "id": "session-restore", "label": "2. Silent refresh", "focus": ["frontend", "backend", "db"], "note": "Refresh cookie is httpOnly + sameSite=strict + path=/auth; rotated on every refresh." },
+      { "id": "logout", "label": "3. Logout", "focus": ["frontend", "backend", "db"], "note": "Backend revokes the session row; cookie is cleared by the response." }
+    ]
+  },
+  "participants": [
+    { "id": "user", "type": "external", "label": "User", "sublabel": "browser" },
+    { "id": "frontend", "type": "frontend", "label": "Frontend", "sublabel": "React + Vite" },
+    { "id": "backend", "type": "backend", "label": "Backend API", "sublabel": "Fastify + JWT" },
+    { "id": "db", "type": "database", "label": "Postgres", "sublabel": "users + sessions" }
+  ],
+  "segments": [
+    { "from": 150, "to": 410, "label": "1. Register / Login" },
+    { "from": 425, "to": 745, "label": "2. Silent refresh" },
+    { "from": 760, "to": 975, "label": "3. Logout" }
+  ],
+  "messages": [
+    { "from": "user", "to": "frontend", "y": 180, "label": "submit credentials" },
+    { "from": "frontend", "to": "backend", "y": 222, "label": "POST /auth/register | /login" },
+    { "from": "backend", "to": "db", "y": 264, "label": "findByEmail + Argon2id verify / hash", "variant": "emphasis" },
+    { "from": "backend", "to": "db", "y": 348, "label": "create user + session row", "variant": "emphasis" },
+    { "from": "backend", "to": "frontend", "y": 390, "label": "200 { accessToken, user } + Set-Cookie refresh", "variant": "return" },
+    { "from": "frontend", "to": "backend", "y": 445, "label": "GET /users/me (Bearer)", "variant": "default" },
+    { "from": "backend", "to": "frontend", "y": 529, "label": "401 — access token expired", "variant": "return" },
+    { "from": "frontend", "to": "backend", "y": 573, "label": "POST /auth/refresh (cookie auto)", "variant": "emphasis" },
+    { "from": "backend", "to": "db", "y": 615, "label": "find session by refresh hash", "variant": "emphasis" },
+    { "from": "backend", "to": "db", "y": 657, "label": "rotate refresh hash + accessJti", "variant": "emphasis" },
+    { "from": "backend", "to": "frontend", "y": 699, "label": "200 { accessToken } + new Set-Cookie", "variant": "return" },
+    { "from": "frontend", "to": "backend", "y": 741, "label": "retry original request", "variant": "default" },
+    { "from": "user", "to": "frontend", "y": 800, "label": "click Logout" },
+    { "from": "frontend", "to": "backend", "y": 842, "label": "POST /auth/logout" },
+    { "from": "backend", "to": "db", "y": 884, "label": "UPDATE sessions SET revoked_at=now()", "variant": "emphasis" },
+    { "from": "backend", "to": "frontend", "y": 926, "label": "204 + clear cookie", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "frontend", "from": 174, "to": 402, "type": "frontend" },
+    { "participant": "backend", "from": 216, "to": 402, "type": "backend" },
+    { "participant": "db", "from": 258, "to": 360, "type": "database" },
+    { "participant": "frontend", "from": 439, "to": 766, "type": "frontend" },
+    { "participant": "backend", "from": 574, "to": 766, "type": "backend" },
+    { "participant": "db", "from": 616, "to": 676, "type": "database" },
+    { "participant": "frontend", "from": 804, "to": 948, "type": "frontend" },
+    { "participant": "backend", "from": 846, "to": 948, "type": "backend" },
+    { "participant": "db", "from": 888, "to": 906, "type": "database" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Two-token strategy", "items": ["Access token is a short-lived JWT kept in JS memory (not localStorage)", "Refresh token is opaque, hashed at rest, httpOnly + sameSite=strict + path=/auth"] },
+    { "dot": "emerald", "title": "Silent refresh", "items": ["On 401, the API client calls POST /auth/refresh once, retries the original request", "Both tokens are rotated on every refresh — replay of the old refresh hash is rejected"] },
+    { "dot": "orange", "title": "Server-side revocation", "items": ["sessions.revoked_at is checked on every refresh", "Logout = UPDATE sessions SET revoked_at=now() + clear cookie", "No JWT blacklist needed; the JWT only proves who, the session proves still-valid"] }
+  ]
+}
