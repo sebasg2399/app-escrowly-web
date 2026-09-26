@@ -86,7 +86,6 @@ function OnboardedCard({ status }: { status: ConnectStatus }) {
 }
 
 function NotOnboardedCard({
-  status: _status,
   launch,
 }: {
   status: ConnectStatus;
