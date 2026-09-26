@@ -43,10 +43,10 @@ Chain strategy: stacked-to-main
 
 ## Phase 3: Milestones
 
-- [ ] 3.1 Create `milestone-role.ts`: per-contract `viewerRole` (client/seller/none) + action matrix (Fund/Submit/Approve/badges)
-- [ ] 3.2 Build `MilestoneRow.tsx`: role×status-gated buttons; `paid`/`approved` terminal badges
-- [ ] 3.3 Add `useSubmitMilestone`/`useApproveMilestone`; invalidate `["contract",id]` on success; 409/403→non-blocking toast
-- [ ] 3.4 Polling in `useContract`: `refetchInterval: hasPending ? 3000 : false`; stops past `pending`
+- [x] 3.1 Create `milestone-role.ts`: per-contract `viewerRole` (client/seller/none) + action matrix (Fund/Submit/Approve/badges)
+- [x] 3.2 Build `MilestoneRow.tsx`: role×status-gated buttons; `paid`/`approved` terminal badges
+- [x] 3.3 Add `useSubmitMilestone`/`useApproveMilestone`; invalidate `["contract",id]` on success; 409/403→non-blocking toast
+- [x] 3.4 Polling in `useContract`: `refetchInterval: hasPending ? 5000 : false`; stops past `pending`
 
 ## Phase 4: Funding
 
