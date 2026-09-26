@@ -7,6 +7,7 @@ import ProfilePage from "../pages/app/ProfilePage";
 import ContractsListPage from "../pages/app/ContractsListPage";
 import ContractCreatePage from "../pages/app/ContractCreatePage";
 import ContractDetailPage from "../pages/app/ContractDetailPage";
+import OnboardingPage from "../pages/app/OnboardingPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import NotFoundPage from "../pages/NotFoundPage";
@@ -46,6 +47,7 @@ export const appRoutes: RouteObject[] = [
                   { path: ":id", element: <ContractDetailPage /> },
                 ],
               },
+              { path: "onboarding", element: <OnboardingPage /> },
             ],
           },
         ],

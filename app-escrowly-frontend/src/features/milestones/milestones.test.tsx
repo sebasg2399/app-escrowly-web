@@ -157,13 +157,18 @@ describe("MilestoneRow action matrix (UI)", () => {
     },
   );
 
-  it("Fund button is disabled with a 'coming soon' tooltip", async () => {
+  it("Fund button is enabled and opens the funding modal on click", async () => {
     __resetContracts([makeContract([makeMilestone({ status: "pending" })])]);
     renderDetailPage({ viewerRole: "client" });
 
     const btn = await screen.findByTestId("milestone-action-fund-0");
-    expect(btn).toBeDisabled();
-    expect(btn.getAttribute("title")).toMatch(/coming soon/i);
+    expect(btn).toBeEnabled();
+
+    fireEvent.click(btn);
+
+    // Funding modal appears and calls POST /fund.
+    expect(await screen.findByTestId("funding-modal")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("funding-modal-pay")).toBeInTheDocument());
   });
 
   it("Paid badge exposes stripeTransferId when present", async () => {

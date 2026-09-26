@@ -7,6 +7,7 @@ export interface NavBarProps {
   onNavigateDashboard?: () => void;
   onNavigateContracts?: () => void;
   onNavigateProfile?: () => void;
+  onNavigatePayouts?: () => void;
   onLogout?: () => void;
 }
 
@@ -16,6 +17,7 @@ export default function NavBar({
   onNavigateDashboard,
   onNavigateContracts,
   onNavigateProfile,
+  onNavigatePayouts,
   onLogout,
 }: NavBarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -99,6 +101,17 @@ export default function NavBar({
                   className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-neutral-50"
                 >
                   Profile
+                </button>
+                <button
+                  role="menuitem"
+                  onClick={() => {
+                    setDropdownOpen(false);
+                    onNavigatePayouts?.();
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-foreground hover:bg-neutral-50"
+                  data-testid="nav-payouts"
+                >
+                  Payouts
                 </button>
                 <button
                   role="menuitem"

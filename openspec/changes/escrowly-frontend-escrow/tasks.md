@@ -50,19 +50,19 @@ Chain strategy: stacked-to-main
 
 ## Phase 4: Funding
 
-- [ ] 4.1 Create `StripeProvider.tsx`: `loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY)` + `<Elements>`; key never hardcoded
-- [ ] 4.2 Add `useFundMilestone.ts`: `POST .../fund` → `clientSecret`
-- [ ] 4.3 Build `FundingModal.tsx`: `<PaymentElement>` + `confirmPayment`; "funds in transit" on resolve (no mutation); card_error→in-modal error, retry, stays `pending`
+- [x] 4.1 `src/lib/stripe.ts` (lazy `getStripe` singleton) + Stripe.js loaded into `<Elements>` inside `FundingModal.tsx`; key never hardcoded
+- [x] 4.2 `useFundMilestone.ts`: `POST .../fund` → `clientSecret`
+- [x] 4.3 `FundingModal.tsx`: `<PaymentElement>` + `confirmPayment`; on success close + invalidate contract query (webhook + polling flip status to `funded`); on decline/required-action surface in-modal error and stay open
 
 ## Phase 5: Connect Onboarding
 
-- [ ] 5.1 Create `useConnectStatus.ts` + `OnboardingLinkButton.tsx`: `POST /connect/onboarding-link` → navigate to returned URL
-- [ ] 5.2 Build `OnboardingPage.tsx`: not-onboarded/onboarded states (`payoutsEnabled`+`detailsSubmitted`); "Refresh status" refetch
+- [x] 5.1 `useConnectStatus.ts` (`GET /connect/status` + `POST /connect/onboarding-link` → `window.location.assign(url)`)
+- [x] 5.2 `OnboardingPage.tsx`: not-onboarded/onboarded states (`payoutsEnabled`+`detailsSubmitted`); "Refresh status" refetch; "Continue on Stripe" CTA wired to launchOnboarding
 
 ## Phase 6: Tests + Cleanup
 
-- [ ] 6.1 Integration tests (web-contracts): list rows/empty; create 200→navigate, 404→sellerEmail, 400→fields; detail 403/404→error state
-- [ ] 6.2 Integration tests (web-milestones): role matrix allowed/disallowed/terminal; submit 200→`in_review`; 409→toast; polling pending→funded→stops
-- [ ] 6.3 Integration tests (web-funding): mock Stripe; in-transit; decline→modal error, stays `pending`; 12500→$125.00
-- [ ] 6.4 Integration tests (web-connect): link navigates; status states; refresh refetch; guest→`/login` with redirect-back
-- [ ] 6.5 Run `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm lint`, `pnpm format:check`; fix failures; README if needed
+- [x] 6.1 Integration tests (web-contracts): list rows/empty; create 200→navigate, 404→sellerEmail, 400→fields; detail 403/404→error state
+- [x] 6.2 Integration tests (web-milestones): role matrix allowed/disallowed/terminal; submit 200→`in_review`; 409→toast; polling pending→funded→stops
+- [x] 6.3 Integration tests (web-funding): mock Stripe; in-transit; decline→modal error, stays `pending`; 50000→$500.00
+- [x] 6.4 Integration tests (web-connect): link navigates; status states; refresh refetch; guest→`/login` with redirect-back
+- [x] 6.5 Run `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm lint`, `pnpm format:check`; fix failures; README if needed

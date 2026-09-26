@@ -11,6 +11,12 @@ interface MilestoneRowProps {
   onAction: (action: MilestoneAction, milestoneId: string) => void;
   /** Disable the action button while a mutation is in flight for this row. */
   actionPending?: boolean;
+  /**
+   * When true, the Fund action is rendered enabled and `onAction` is called
+   * when the user clicks it. Set by the detail page once the funding flow is
+   * available. Defaults to false so the placeholder remains a placeholder.
+   */
+  enableFunding?: boolean;
 }
 
 function statusLabel(status: Milestone["status"]): string {
@@ -23,6 +29,7 @@ export default function MilestoneRow({
   viewerRole,
   onAction,
   actionPending = false,
+  enableFunding = false,
 }: MilestoneRowProps) {
   const action = actionsFor(milestone, viewerRole);
 
@@ -61,6 +68,7 @@ export default function MilestoneRow({
           action={action}
           index={index}
           pending={actionPending}
+          enableFunding={enableFunding}
           onActivate={() => onAction(action, milestone.id)}
         />
       </div>
@@ -72,6 +80,7 @@ interface MilestoneActionButtonProps {
   action: MilestoneAction;
   index: number;
   pending: boolean;
+  enableFunding: boolean;
   onActivate: () => void;
 }
 
@@ -84,18 +93,38 @@ interface MilestoneActionButtonProps {
  * - `paid`: muted badge-style label with `stripeTransferId` reference.
  * - `none`: renders nothing.
  */
-function MilestoneActionButton({ action, index, pending, onActivate }: MilestoneActionButtonProps) {
+function MilestoneActionButton({
+  action,
+  index,
+  pending,
+  enableFunding,
+  onActivate,
+}: MilestoneActionButtonProps) {
   if (action.kind === "none") return null;
 
   if (action.kind === "fund") {
+    if (!enableFunding) {
+      return (
+        <button
+          type="button"
+          disabled
+          title={action.reason}
+          aria-label={`${action.label} (${action.reason})`}
+          data-testid={`milestone-action-fund-${index}`}
+          className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-3 py-1.5 text-sm font-medium text-neutral-400 cursor-not-allowed"
+        >
+          {action.label}
+        </button>
+      );
+    }
     return (
       <button
         type="button"
-        disabled
-        title={action.reason}
-        aria-label={`${action.label} (${action.reason})`}
+        onClick={onActivate}
+        disabled={pending}
+        aria-label={action.label}
         data-testid={`milestone-action-fund-${index}`}
-        className="inline-flex items-center justify-center rounded-lg bg-neutral-100 px-3 py-1.5 text-sm font-medium text-neutral-400 cursor-not-allowed"
+        className="inline-flex items-center justify-center rounded-lg bg-primary px-3 py-1.5 text-sm font-medium text-primary-fg hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {action.label}
       </button>

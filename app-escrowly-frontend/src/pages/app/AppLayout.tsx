@@ -18,6 +18,7 @@ export default function AppLayout() {
       onNavigateDashboard={() => navigate("/app")}
       onNavigateContracts={() => navigate("/app/contracts")}
       onNavigateProfile={() => navigate("/app/profile")}
+      onNavigatePayouts={() => navigate("/app/onboarding")}
       onLogout={handleLogout}
     >
       <Outlet />
