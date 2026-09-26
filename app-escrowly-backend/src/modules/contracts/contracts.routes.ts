@@ -2,6 +2,10 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { ContractsService } from "./contracts.service.js";
 import { createContractSchema } from "./contracts.schemas.js";
 import zodToJsonSchema from "zod-to-json-schema";
+import {
+  contractSchema,
+  errorEnvelopeSchema,
+} from "../schemas/index.js";
 
 function buildValidationError(
   details: Record<string, string[]>,
@@ -42,6 +46,14 @@ export async function contractsRoutes(
       schema: {
         security: [{ bearerAuth: [] }],
         body: zodToJsonSchema(createContractSchema.shape.body),
+        response: {
+          201: contractSchema,
+          400: errorEnvelopeSchema,
+          401: errorEnvelopeSchema,
+          403: errorEnvelopeSchema,
+          404: errorEnvelopeSchema,
+          409: errorEnvelopeSchema,
+        },
       },
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
@@ -62,6 +74,10 @@ export async function contractsRoutes(
       preHandler: [(app as any).authenticate],
       schema: {
         security: [{ bearerAuth: [] }],
+        response: {
+          200: { type: "array", items: contractSchema },
+          401: errorEnvelopeSchema,
+        },
       },
     },
     async (request: FastifyRequest) => {
@@ -76,6 +92,12 @@ export async function contractsRoutes(
       preHandler: [(app as any).authenticate],
       schema: {
         security: [{ bearerAuth: [] }],
+        response: {
+          200: contractSchema,
+          401: errorEnvelopeSchema,
+          403: errorEnvelopeSchema,
+          404: errorEnvelopeSchema,
+        },
       },
     },
     async (request: FastifyRequest) => {

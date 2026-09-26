@@ -278,7 +278,70 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              /** Format: uuid */
+              id: string;
+              /** Format: uuid */
+              clientId: string;
+              /** Format: uuid */
+              sellerId: string;
+              /** @enum {string} */
+              status: "draft" | "active" | "completed" | "cancelled";
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+              client: {
+                /** Format: uuid */
+                id: string;
+                /** Format: email */
+                email: string;
+                name: string;
+              };
+              seller: {
+                /** Format: uuid */
+                id: string;
+                /** Format: email */
+                email: string;
+                name: string;
+              };
+              milestones: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                contractId: string;
+                title: string;
+                amount: number;
+                currency: string;
+                /** @enum {string} */
+                status: "pending" | "funded" | "in_review" | "disputed" | "approved" | "paid";
+                stripePaymentIntentId?: string | null;
+                stripeTransferId?: string | null;
+                /** Format: date-time */
+                paidAt?: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+              }[];
+            }[];
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
         };
       };
     };
@@ -304,11 +367,134 @@ export interface paths {
       };
       responses: {
         /** @description Default Response */
-        200: {
+        201: {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              /** Format: uuid */
+              id: string;
+              /** Format: uuid */
+              clientId: string;
+              /** Format: uuid */
+              sellerId: string;
+              /** @enum {string} */
+              status: "draft" | "active" | "completed" | "cancelled";
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+              client: {
+                /** Format: uuid */
+                id: string;
+                /** Format: email */
+                email: string;
+                name: string;
+              };
+              seller: {
+                /** Format: uuid */
+                id: string;
+                /** Format: email */
+                email: string;
+                name: string;
+              };
+              milestones: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                contractId: string;
+                title: string;
+                amount: number;
+                currency: string;
+                /** @enum {string} */
+                status: "pending" | "funded" | "in_review" | "disputed" | "approved" | "paid";
+                stripePaymentIntentId?: string | null;
+                stripeTransferId?: string | null;
+                /** Format: date-time */
+                paidAt?: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+              }[];
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
         };
       };
     };
@@ -341,7 +527,100 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              /** Format: uuid */
+              id: string;
+              /** Format: uuid */
+              clientId: string;
+              /** Format: uuid */
+              sellerId: string;
+              /** @enum {string} */
+              status: "draft" | "active" | "completed" | "cancelled";
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+              client: {
+                /** Format: uuid */
+                id: string;
+                /** Format: email */
+                email: string;
+                name: string;
+              };
+              seller: {
+                /** Format: uuid */
+                id: string;
+                /** Format: email */
+                email: string;
+                name: string;
+              };
+              milestones: {
+                /** Format: uuid */
+                id: string;
+                /** Format: uuid */
+                contractId: string;
+                title: string;
+                amount: number;
+                currency: string;
+                /** @enum {string} */
+                status: "pending" | "funded" | "in_review" | "disputed" | "approved" | "paid";
+                stripePaymentIntentId?: string | null;
+                stripeTransferId?: string | null;
+                /** Format: date-time */
+                paidAt?: string | null;
+                /** Format: date-time */
+                createdAt: string;
+                /** Format: date-time */
+                updatedAt: string;
+              }[];
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
         };
       };
     };
@@ -379,7 +658,103 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              /** Format: uuid */
+              id: string;
+              clientSecret: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
         };
       };
     };
@@ -415,7 +790,102 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              /** Format: uuid */
+              id: string;
+              /** Format: uuid */
+              contractId: string;
+              title: string;
+              amount: number;
+              currency: string;
+              /** @enum {string} */
+              status: "pending" | "funded" | "in_review" | "disputed" | "approved" | "paid";
+              stripePaymentIntentId?: string | null;
+              stripeTransferId?: string | null;
+              /** Format: date-time */
+              paidAt?: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
         };
       };
     };
@@ -451,7 +921,117 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              /** Format: uuid */
+              id: string;
+              /** Format: uuid */
+              contractId: string;
+              title: string;
+              amount: number;
+              currency: string;
+              /** @enum {string} */
+              status: "pending" | "funded" | "in_review" | "disputed" | "approved" | "paid";
+              stripePaymentIntentId?: string | null;
+              stripeTransferId?: string | null;
+              /** Format: date-time */
+              paidAt?: string | null;
+              /** Format: date-time */
+              createdAt: string;
+              /** Format: date-time */
+              updatedAt: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        400: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        409: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        502: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
         };
       };
     };
@@ -484,7 +1064,57 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              /** Format: uri */
+              url: string;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        403: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
+        };
+        /** @description Default Response */
+        404: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
         };
       };
     };
@@ -515,7 +1145,29 @@ export interface paths {
           headers: {
             [name: string]: unknown;
           };
-          content?: never;
+          content: {
+            "application/json": {
+              hasAccount: boolean;
+              detailsSubmitted: boolean;
+              payoutsEnabled: boolean;
+              onboardingComplete: boolean;
+            };
+          };
+        };
+        /** @description Default Response */
+        401: {
+          headers: {
+            [name: string]: unknown;
+          };
+          content: {
+            "application/json": {
+              code: string;
+              message: string;
+              details?: {
+                [key: string]: string[];
+              };
+            };
+          };
         };
       };
     };

@@ -1,5 +1,10 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { ConnectService } from "./connect.service.js";
+import {
+  connectStatusSchema,
+  errorEnvelopeSchema,
+  onboardingLinkSchema,
+} from "../schemas/index.js";
 
 export async function connectRoutes(
   app: FastifyInstance,
@@ -11,6 +16,12 @@ export async function connectRoutes(
       preHandler: [(app as any).authenticate],
       schema: {
         security: [{ bearerAuth: [] }],
+        response: {
+          200: onboardingLinkSchema,
+          401: errorEnvelopeSchema,
+          403: errorEnvelopeSchema,
+          404: errorEnvelopeSchema,
+        },
       },
     },
     async (request: FastifyRequest) => {
@@ -25,6 +36,10 @@ export async function connectRoutes(
       preHandler: [(app as any).authenticate],
       schema: {
         security: [{ bearerAuth: [] }],
+        response: {
+          200: connectStatusSchema,
+          401: errorEnvelopeSchema,
+        },
       },
     },
     async (request: FastifyRequest) => {

@@ -1,5 +1,10 @@
 import type { FastifyInstance, FastifyRequest } from "fastify";
 import { MilestonesService } from "./milestones.service.js";
+import {
+  errorEnvelopeSchema,
+  fundResultSchema,
+  milestoneSchema,
+} from "../schemas/index.js";
 
 export async function milestonesRoutes(
   app: FastifyInstance,
@@ -11,6 +16,15 @@ export async function milestonesRoutes(
       preHandler: [(app as any).authenticate],
       schema: {
         security: [{ bearerAuth: [] }],
+        response: {
+          200: fundResultSchema,
+          400: errorEnvelopeSchema,
+          401: errorEnvelopeSchema,
+          403: errorEnvelopeSchema,
+          404: errorEnvelopeSchema,
+          409: errorEnvelopeSchema,
+          502: errorEnvelopeSchema,
+        },
       },
     },
     async (request: FastifyRequest) => {
@@ -26,6 +40,14 @@ export async function milestonesRoutes(
       preHandler: [(app as any).authenticate],
       schema: {
         security: [{ bearerAuth: [] }],
+        response: {
+          200: milestoneSchema,
+          400: errorEnvelopeSchema,
+          401: errorEnvelopeSchema,
+          403: errorEnvelopeSchema,
+          404: errorEnvelopeSchema,
+          409: errorEnvelopeSchema,
+        },
       },
     },
     async (request: FastifyRequest) => {
@@ -41,6 +63,15 @@ export async function milestonesRoutes(
       preHandler: [(app as any).authenticate],
       schema: {
         security: [{ bearerAuth: [] }],
+        response: {
+          200: milestoneSchema,
+          400: errorEnvelopeSchema,
+          401: errorEnvelopeSchema,
+          403: errorEnvelopeSchema,
+          404: errorEnvelopeSchema,
+          409: errorEnvelopeSchema,
+          502: errorEnvelopeSchema,
+        },
       },
     },
     async (request: FastifyRequest) => {

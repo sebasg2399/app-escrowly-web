@@ -1,44 +1,21 @@
 /**
- * Local types for the contracts feature.
+ * Types for the contracts feature.
  *
- * The OpenAPI spec at `app-escrowly-backend/openapi.yaml` declares request
- * bodies for `/contracts` and `/contracts/{id}` but does NOT declare response
- * schemas. As a result, `paths["/contracts/{id}"]["get"]["responses"][200]
- * ["content"]` is `never` in the generated `types.generated.ts`.
- *
- * These local types are the frontend's source of truth for the response
- * shape, mirroring `openspec/specs/contracts/spec.md` and
- * `openspec/specs/milestones/spec.md`. They will be replaced by generated
- * types once the backend adds response schemas.
+ * The response shapes now come from the backend OpenAPI spec (declared as
+ * `schema.response` so `pnpm gen:api` produces real types). We derive our
+ * domain types from `paths` and keep only the `ViewerRole` helper here.
  */
 
-export type MilestoneStatus = "pending" | "funded" | "in_review" | "disputed" | "approved" | "paid";
+import type { paths } from "../../lib/api/types.generated";
 
-export type ContractStatus = "draft" | "active" | "completed" | "cancelled";
+/** A single contract with its relations (participants + milestones). */
+export type Contract = NonNullable<
+  paths["/contracts/{id}"]["get"]["responses"][200]["content"]["application/json"]
+>;
 
-export interface Participant {
-  id: string;
-  email: string;
-  name: string;
-}
-
-export interface Milestone {
-  id: string;
-  title: string;
-  /** Integer cents — never floats. */
-  amount: number;
-  status: MilestoneStatus;
-}
-
-export interface Contract {
-  id: string;
-  status: ContractStatus;
-  client: Participant;
-  seller: Participant;
-  milestones: Milestone[];
-  createdAt: string;
-  updatedAt: string;
-}
+export type Milestone = Contract["milestones"][number];
+export type ContractStatus = Contract["status"];
+export type MilestoneStatus = Milestone["status"];
 
 export type ViewerRole = "client" | "seller" | "none";
 
